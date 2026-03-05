@@ -1,6 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { DocumentStatus, ObjectType, VersionType } from '@prisma/client';
-import { Prisma } from '@prisma/client';
+import { DocumentStatus, ObjectType, Prisma, VersionType } from '@prisma/client';
 import { Readable } from 'stream';
 
 import { PrismaService } from '../../database/prisma.service';

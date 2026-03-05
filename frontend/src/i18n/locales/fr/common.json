@@ -1,0 +1,81 @@
+{
+  "appName": "OpenGED",
+  "search": "Rechercher",
+  "loading": "Chargement...",
+  "signOut": "Se déconnecter",
+  "language": {
+    "label": "Langue",
+    "fr": "Français",
+    "en": "English",
+    "ar": "العربية"
+  },
+  "shell": {
+    "workspace": "Espace moderne",
+    "title": "Gestion documentaire",
+    "expandSidebar": "Déplier la barre latérale",
+    "collapseSidebar": "Réduire la barre latérale",
+    "openMenu": "Ouvrir le menu de navigation"
+  },
+  "nav": {
+    "sites": "Sites",
+    "recent": "Récents",
+    "favorites": "Favoris",
+    "tasks": "Mes tâches",
+    "audit": "Audit",
+    "users": "Utilisateurs",
+    "workflows": "Workflows",
+    "admin": "Administration"
+  },
+  "actions": {
+    "new": "Nouveau",
+    "upload": "Téléverser",
+    "editMetadata": "Modifier les métadonnées",
+    "share": "Partager",
+    "download": "Télécharger",
+    "versionHistory": "Historique des versions",
+    "automate": "Automatiser",
+    "startWorkflow": "Démarrer un workflow",
+    "delete": "Supprimer",
+    "apply": "Appliquer",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "back": "Retour",
+    "continue": "Continuer",
+    "preview": "Aperçu",
+    "checkIn": "Check-in",
+    "pinToTop": "Épingler en haut"
+  },
+  "status": {
+    "draft": "Brouillon",
+    "pending": "En attente",
+    "published": "Publié",
+    "archived": "Archivé",
+    "deleted": "Supprimé",
+    "open": "Ouvert",
+    "completed": "Terminé",
+    "rejected": "Rejeté",
+    "canceled": "Annulé"
+  },
+  "empty": {
+    "noData": "Aucune donnée",
+    "noResults": "Aucun résultat"
+  },
+  "smart": {
+    "clearSelection": "Effacer la sélection",
+    "loadingSuggestions": "Chargement des suggestions...",
+    "typeToSearch": "Tapez au moins {{count}} caractères pour rechercher.",
+    "noSuggestions": "Aucune suggestion",
+    "create": "Créer \"{{value}}\"",
+    "remove": "Supprimer {{value}}"
+  },
+  "pages": {
+    "recent": {
+      "title": "Récents",
+      "description": "Le raccourci des documents récents est prêt. Branchez-le à un endpoint dédié quand nécessaire."
+    },
+    "favorites": {
+      "title": "Favoris",
+      "description": "Les favoris sont prêts pour une persistance utilisateur (actions étoile/signet à brancher ensuite)."
+    }
+  }
+}

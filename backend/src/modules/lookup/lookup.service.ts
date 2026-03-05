@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { DocumentStatus } from '@prisma/client';
+import { DocumentStatus, UserStatus } from '@prisma/client';
 
 import { PrismaService } from '../../database/prisma.service';
 import { PermissionsService } from '../permissions/permissions.service';
@@ -21,12 +21,12 @@ export class LookupService {
     private readonly permissionsService: PermissionsService,
   ) {}
 
-  async search(entity: string, q?: string, taxonomy?: string): Promise<LookupItem[]> {
+  async search(entity: string, q?: string, taxonomy?: string, activeOnly?: boolean): Promise<LookupItem[]> {
     const term = (q ?? '').trim();
 
     switch (entity) {
       case 'users':
-        return this.searchUsers(term);
+        return this.searchUsers(term, activeOnly);
       case 'groups':
         return this.searchGroups(term);
       case 'documents':
@@ -61,7 +61,7 @@ export class LookupService {
     }
   }
 
-  private async searchUsers(term: string) {
+  private async searchUsers(term: string, activeOnly?: boolean) {
     const users = await this.prisma.user.findMany({
       where: term
         ? {
@@ -69,8 +69,11 @@ export class LookupService {
               contains: term,
               mode: 'insensitive',
             },
+            status: activeOnly ? UserStatus.ACTIVE : undefined,
           }
-        : undefined,
+        : {
+            status: activeOnly ? UserStatus.ACTIVE : undefined,
+          },
       select: {
         id: true,
         email: true,

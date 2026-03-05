@@ -9,6 +9,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
+import { useTranslation } from 'react-i18next';
 import {
   ArrowDown,
   ArrowUp,
@@ -104,6 +105,7 @@ export function DocumentTable({
   onDownload,
   onOpenFolder,
 }: DocumentTableProps) {
+  const { t } = useTranslation(['library', 'common']);
   const storageKey = `openged.view.${viewKey}`;
 
   const initialPreferences = useMemo(() => loadPreferences(storageKey), [storageKey]);
@@ -127,14 +129,14 @@ export function DocumentTable({
           <Checkbox
             checked={table.getIsAllRowsSelected() || (table.getIsSomeRowsSelected() && 'indeterminate')}
             onCheckedChange={(value) => table.toggleAllRowsSelected(Boolean(value))}
-            aria-label="Select all"
+            aria-label={t('table.selectAll')}
           />
         ),
         cell: ({ row }) => (
           <Checkbox
             checked={row.getIsSelected()}
             onCheckedChange={(value) => row.toggleSelected(Boolean(value))}
-            aria-label="Select row"
+            aria-label={t('table.selectRow')}
           />
         ),
         enableResizing: false,
@@ -142,7 +144,7 @@ export function DocumentTable({
       },
       {
         accessorKey: 'title',
-        header: 'Name',
+        header: t('table.name'),
         size: 320,
         cell: ({ row }) => {
           const item = row.original;
@@ -190,13 +192,13 @@ export function DocumentTable({
       },
       {
         accessorKey: 'updatedAt',
-        header: 'Modified',
+        header: t('table.modified'),
         size: 150,
         cell: ({ row }) => <span className="text-xs text-[#334155]">{formatDate(row.original.updatedAt)}</span>,
       },
       {
         accessorKey: 'modifiedBy',
-        header: 'Modified by',
+        header: t('table.modifiedBy'),
         size: 180,
         cell: ({ row }) => (
           <span className="truncate text-xs text-[#334155]">
@@ -206,13 +208,13 @@ export function DocumentTable({
       },
       {
         accessorKey: 'createdAt',
-        header: 'Created',
+        header: t('table.created'),
         size: 150,
         cell: ({ row }) => <span className="text-xs text-[#334155]">{formatDate(row.original.createdAt)}</span>,
       },
       {
         accessorKey: 'createdBy',
-        header: 'Created by',
+        header: t('table.createdBy'),
         size: 180,
         cell: ({ row }) => (
           <span className="truncate text-xs text-[#334155]">
@@ -222,24 +224,24 @@ export function DocumentTable({
       },
       {
         accessorKey: 'contentType',
-        header: 'Type',
+        header: t('table.type'),
         size: 130,
         cell: ({ row }) => (
           <span className="text-xs text-[#334155]">
-            {row.original.kind === 'document' ? row.original.contentType : 'Folder'}
+            {row.original.kind === 'document' ? row.original.contentType : t('contentTypes.folder')}
           </span>
         ),
       },
       {
         accessorKey: 'status',
-        header: 'Status',
+        header: t('table.status'),
         size: 140,
         cell: ({ row }) =>
           row.original.kind === 'document' ? <StatusBadge status={row.original.status} /> : <span>-</span>,
       },
       {
         accessorKey: 'confidentiality',
-        header: 'Confidentiality',
+        header: t('table.confidentiality'),
         size: 150,
         cell: ({ row }) => (
           <span className="text-xs text-[#334155]">
@@ -248,7 +250,7 @@ export function DocumentTable({
         ),
       },
     ],
-    [onDownload, onOpenFolder, onOpenPreview],
+    [onDownload, onOpenFolder, onOpenPreview, t],
   );
 
   const table = useReactTable({
@@ -344,15 +346,15 @@ export function DocumentTable({
       <div className="flex items-center justify-between border-b border-[#e2e8f0] bg-white px-3 py-2">
         <div className="text-xs text-[#64748b]">
           {table.getSelectedRowModel().rows.length > 0
-            ? `${table.getSelectedRowModel().rows.length} selected`
-            : `${rows.length} items`}
+            ? t('table.selectedCount', { count: table.getSelectedRowModel().rows.length })
+            : t('table.itemsCount', { count: rows.length })}
         </div>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="secondary" size="sm">
               <Settings2 className="h-4 w-4" />
-              Columns
+              {t('table.columns')}
               <ChevronDown className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -435,7 +437,7 @@ export function DocumentTable({
             {!loading && rowModel.length === 0 ? (
               <tr>
                 <td className="px-3 py-6 text-sm text-[#64748b]" colSpan={table.getAllLeafColumns().length}>
-                  No documents match this view.
+                  {t('table.noDocuments')}
                 </td>
               </tr>
             ) : null}
@@ -484,19 +486,25 @@ export function DocumentTable({
                       <ContextMenuContent>
                         {item.kind === 'folder' ? (
                           <>
-                            <ContextMenuItem onClick={() => onOpenFolder(item.id)}>Open folder</ContextMenuItem>
+                            <ContextMenuItem onClick={() => onOpenFolder(item.id)}>
+                              {t('table.openFolder')}
+                            </ContextMenuItem>
                           </>
                         ) : (
                           <>
-                            <ContextMenuItem onClick={() => onOpenPreview(item)}>Open</ContextMenuItem>
-                            <ContextMenuItem onClick={() => onOpenPreview(item)}>Preview</ContextMenuItem>
-                            <ContextMenuItem onClick={() => onDownload(item)}>Download</ContextMenuItem>
-                            <ContextMenuItem onClick={() => onOpenVersions(item)}>Versions</ContextMenuItem>
+                            <ContextMenuItem onClick={() => onOpenPreview(item)}>{t('table.open')}</ContextMenuItem>
+                            <ContextMenuItem onClick={() => onOpenPreview(item)}>
+                              {t('common:actions.preview')}
+                            </ContextMenuItem>
+                            <ContextMenuItem onClick={() => onDownload(item)}>
+                              {t('common:actions.download')}
+                            </ContextMenuItem>
+                            <ContextMenuItem onClick={() => onOpenVersions(item)}>{t('table.versions')}</ContextMenuItem>
                             <ContextMenuItem onClick={() => onStartWorkflow(item)}>
-                              Start workflow
+                              {t('common:actions.startWorkflow')}
                             </ContextMenuItem>
                             <ContextMenuSeparator />
-                            <ContextMenuItem>Manage permissions</ContextMenuItem>
+                            <ContextMenuItem>{t('table.managePermissions')}</ContextMenuItem>
                           </>
                         )}
                       </ContextMenuContent>

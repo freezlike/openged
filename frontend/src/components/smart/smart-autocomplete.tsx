@@ -1,6 +1,7 @@
 import { KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, Loader2, Plus, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { createLookupValue, LookupEntity, LookupItem, searchLookup } from '../../api/lookup';
 import { useDebouncedValue } from '../../hooks/use-debounced-value';
@@ -13,6 +14,8 @@ export interface SmartAutocompleteProps {
   onChange: (value: LookupItem | null) => void;
   placeholder?: string;
   taxonomy?: string;
+  activeOnly?: boolean;
+  minChars?: number;
   allowCreate?: boolean;
   disabled?: boolean;
   className?: string;
@@ -53,10 +56,13 @@ export function SmartAutocomplete({
   onChange,
   placeholder,
   taxonomy,
+  activeOnly,
+  minChars = 0,
   allowCreate = false,
   disabled,
   className,
 }: SmartAutocompleteProps) {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const wrapperRef = useRef<HTMLDivElement | null>(null);
 
@@ -65,6 +71,8 @@ export function SmartAutocomplete({
   const [focusedIndex, setFocusedIndex] = useState(0);
 
   const debounced = useDebouncedValue(inputValue, 200);
+  const normalizedQuery = debounced.trim();
+  const canSearch = normalizedQuery.length >= minChars;
 
   useEffect(() => {
     setInputValue(value?.label ?? '');
@@ -84,13 +92,14 @@ export function SmartAutocomplete({
   }, []);
 
   const lookupQuery = useQuery({
-    queryKey: ['lookup', entity, taxonomy, debounced],
+    queryKey: ['lookup', entity, taxonomy, activeOnly, debounced],
     queryFn: () =>
       searchLookup(entity, {
-        q: debounced.trim() || undefined,
+        q: normalizedQuery || undefined,
         taxonomy,
+        activeOnly,
       }),
-    enabled: open && !disabled,
+    enabled: open && !disabled && canSearch,
   });
 
   const createMutation = useMutation({
@@ -113,12 +122,12 @@ export function SmartAutocomplete({
     }
 
     const exact = options.some((option) => option.label.toLowerCase() === normalized.toLowerCase());
-    if (exact) {
+    if (exact || normalized.length < minChars) {
       return undefined;
     }
 
     return normalized;
-  }, [allowCreate, inputValue, options]);
+  }, [allowCreate, inputValue, minChars, options]);
 
   useEffect(() => {
     setFocusedIndex(0);
@@ -213,7 +222,7 @@ export function SmartAutocomplete({
             setOpen(true);
           }}
           className="absolute right-2 top-2 rounded p-0.5 text-[#94a3b8] hover:bg-[#f1f5f9] hover:text-[#334155]"
-          aria-label="Clear selection"
+          aria-label={t('smart.clearSelection')}
         >
           <X className="h-3.5 w-3.5" />
         </button>
@@ -224,15 +233,21 @@ export function SmartAutocomplete({
           {lookupQuery.isLoading ? (
             <div className="flex items-center gap-2 px-3 py-2 text-xs text-[#64748b]">
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              Loading suggestions...
+              {t('smart.loadingSuggestions')}
             </div>
           ) : null}
 
-          {!lookupQuery.isLoading && options.length === 0 && !createOption ? (
-            <p className="px-3 py-2 text-xs text-[#64748b]">No suggestions</p>
+          {!lookupQuery.isLoading && !canSearch ? (
+            <p className="px-3 py-2 text-xs text-[#64748b]">
+              {t('smart.typeToSearch', { count: minChars })}
+            </p>
           ) : null}
 
-          {!lookupQuery.isLoading
+          {!lookupQuery.isLoading && canSearch && options.length === 0 && !createOption ? (
+            <p className="px-3 py-2 text-xs text-[#64748b]">{t('smart.noSuggestions')}</p>
+          ) : null}
+
+          {!lookupQuery.isLoading && canSearch
             ? options.map((option, index) => (
                 <button
                   key={option.id}
@@ -250,7 +265,7 @@ export function SmartAutocomplete({
               ))
             : null}
 
-          {createOption ? (
+          {canSearch && createOption ? (
             <button
               type="button"
               className={cn(
@@ -268,7 +283,7 @@ export function SmartAutocomplete({
               ) : (
                 <Plus className="h-3.5 w-3.5" />
               )}
-              Create "{createOption}"
+              {t('smart.create', { value: createOption })}
             </button>
           ) : null}
         </div>

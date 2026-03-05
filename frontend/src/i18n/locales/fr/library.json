@@ -1,0 +1,131 @@
+{
+  "sites": {
+    "title": "Sites",
+    "description": "Choisissez un site et une bibliothèque pour ouvrir l'expérience documentaire moderne.",
+    "loading": "Chargement des sites...",
+    "actions": {
+      "newSite": "Nouveau site",
+      "newLibrary": "Nouvelle bibliothèque",
+      "create": "Créer",
+      "cancel": "Annuler"
+    },
+    "form": {
+      "siteName": "Nom du site",
+      "siteDescription": "Description du site (optionnel)",
+      "libraryName": "Nom de la bibliothèque"
+    },
+    "emptyLibraries": "Aucune bibliothèque pour ce site."
+  },
+  "savedViews": {
+    "all": "Tous les documents",
+    "mine": "Mes documents",
+    "drafts": "Brouillons",
+    "pending": "En attente de validation",
+    "published": "Publiés",
+    "archived": "Archivés"
+  },
+  "header": {
+    "lastRefreshed": "Dernière actualisation"
+  },
+  "filters": {
+    "searchPlaceholder": "Rechercher dans cette bibliothèque",
+    "status": "Statut",
+    "type": "Type",
+    "confidentiality": "Confidentialité",
+    "author": "Auteur",
+    "modifiedFrom": "Modifié depuis",
+    "modifiedTo": "Modifié jusqu'à",
+    "sort": "Tri"
+  },
+  "prompts": {
+    "folderName": "Nom du dossier",
+    "newFolderName": "Nouveau nom de dossier",
+    "selectDocumentToDelete": "Sélectionnez au moins un document à supprimer.",
+    "folderDeleteUnavailable": "La suppression de dossier n'est pas encore disponible. Seuls les documents sélectionnés seront supprimés.",
+    "confirmDelete": "Supprimer {{count}} document(s) ?"
+  },
+  "table": {
+    "itemsCount": "{{count}} éléments",
+    "selectedCount": "{{count}} sélectionné(s)",
+    "columns": "Colonnes",
+    "name": "Nom",
+    "modified": "Modifié",
+    "modifiedBy": "Modifié par",
+    "created": "Créé",
+    "createdBy": "Créé par",
+    "type": "Type",
+    "status": "Statut",
+    "confidentiality": "Confidentialité",
+    "noDocuments": "Aucun document ne correspond à cette vue.",
+    "selectAll": "Tout sélectionner",
+    "selectRow": "Sélectionner la ligne",
+    "openFolder": "Ouvrir le dossier",
+    "open": "Ouvrir",
+    "versions": "Versions",
+    "managePermissions": "Gérer les permissions"
+  },
+  "details": {
+    "empty": "Sélectionnez un document pour voir les détails.",
+    "details": "Détails",
+    "activity": "Activité",
+    "versions": "Versions",
+    "workflow": "Workflow",
+    "site": "Site",
+    "library": "Bibliothèque",
+    "createdBy": "Créé par",
+    "status": "Statut",
+    "noActivity": "Aucune activité.",
+    "noVersions": "Aucune version.",
+    "startWorkflow": "Démarrer un workflow pour ce document",
+    "noWorkflow": "Aucun historique de workflow sur ce document.",
+    "updated": "Mis à jour",
+    "started": "Démarré",
+    "closed": "Fermé",
+    "active": "Actif",
+    "assignedTo": "Assigné à",
+    "due": "Échéance",
+    "workflowName": "Workflow",
+    "task": "Tâche",
+    "version": "Version"
+  },
+  "metadata": {
+    "required": "Obligatoire",
+    "optional": "Optionnel",
+    "selectValue": "Sélectionner une valeur",
+    "search": "Rechercher...",
+    "searchTaxonomy": "Rechercher des valeurs de taxonomie...",
+    "selectUser": "Sélectionner un utilisateur",
+    "optionalUser": "Utilisateur optionnel",
+    "save": "Enregistrer les métadonnées",
+    "saving": "Enregistrement..."
+  },
+  "contentTypes": {
+    "all": "Tous les types",
+    "document": "Document",
+    "procedure": "Procédure",
+    "contract": "Contrat",
+    "invoice": "Facture",
+    "folder": "Dossier"
+  },
+  "statusOptions": {
+    "all": "Tous les statuts",
+    "draft": "Brouillon",
+    "pending": "En attente",
+    "published": "Publié",
+    "archived": "Archivé"
+  },
+  "confidentialityOptions": {
+    "all": "Toutes les classifications",
+    "public": "Public",
+    "internal": "Interne",
+    "restricted": "Restreint"
+  },
+  "sortOptions": {
+    "updatedDesc": "Modifié (plus récent)",
+    "updatedAsc": "Modifié (plus ancien)",
+    "createdDesc": "Créé (plus récent)",
+    "createdAsc": "Créé (plus ancien)",
+    "titleAsc": "Nom (A-Z)",
+    "titleDesc": "Nom (Z-A)"
+  }
+}

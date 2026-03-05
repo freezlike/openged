@@ -1,0 +1,11 @@
+{
+  "title": "Audit",
+  "description": "Événements de sécurité et de cycle de vie sur la plateforme.",
+  "filterPlaceholder": "Filtrer par type d'événement",
+  "event": "Événement",
+  "object": "Objet",
+  "actor": "Acteur",
+  "time": "Date",
+  "system": "système",
+  "empty": "Aucun événement d'audit pour ce filtre."
+}

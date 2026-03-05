@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { LookupItem } from '../../api/lookup';
 import { SmartUserPicker } from '../smart';
@@ -33,6 +34,7 @@ export function WorkflowStartPanel({
   workflows,
   onSubmit,
 }: WorkflowStartPanelProps) {
+  const { t } = useTranslation('workflow');
   const [workflowDefId, setWorkflowDefId] = useState<string>('');
   const [assignee, setAssignee] = useState<LookupItem | null>(null);
   const [dueDate, setDueDate] = useState('');
@@ -80,18 +82,20 @@ export function WorkflowStartPanel({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full max-w-lg space-y-4">
         <SheetHeader>
-          <SheetTitle>Start workflow</SheetTitle>
+          <SheetTitle>{t('panel.startTitle')}</SheetTitle>
           <SheetDescription>
-            Launch approval flow for {documentTitle ? `"${documentTitle}"` : 'selected document'}.
+            {t('panel.startDescription', {
+              title: documentTitle ? `"${documentTitle}"` : t('panel.selectedDocument'),
+            })}
           </SheetDescription>
         </SheetHeader>
 
         <div className="space-y-3">
           <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wide text-[#64748b]">Workflow</label>
+            <label className="text-xs font-semibold uppercase tracking-wide text-[#64748b]">{t('panel.workflow')}</label>
             <Select value={workflowDefId} onValueChange={setWorkflowDefId}>
               <SelectTrigger>
-                <SelectValue placeholder="Select workflow" />
+                <SelectValue placeholder={t('panel.selectWorkflow')} />
               </SelectTrigger>
               <SelectContent>
                 {workflows.map((workflow) => (
@@ -107,46 +111,47 @@ export function WorkflowStartPanel({
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wide text-[#64748b]">Assignee</label>
+            <label className="text-xs font-semibold uppercase tracking-wide text-[#64748b]">{t('panel.assignee')}</label>
             <SmartUserPicker
               value={assignee}
               onChange={setAssignee}
-              placeholder="Search user..."
+              placeholder={t('panel.searchUser')}
+              activeOnly
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wide text-[#64748b]">Due date</label>
+            <label className="text-xs font-semibold uppercase tracking-wide text-[#64748b]">{t('panel.dueDate')}</label>
             <Input type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} />
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wide text-[#64748b]">Version impact</label>
+            <label className="text-xs font-semibold uppercase tracking-wide text-[#64748b]">{t('panel.versionImpact')}</label>
             <Select value={versionImpact} onValueChange={(value) => setVersionImpact(value as 'minor' | 'major')}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="minor">Minor version</SelectItem>
-                <SelectItem value="major">Major version</SelectItem>
+                <SelectItem value="minor">{t('panel.minor')}</SelectItem>
+                <SelectItem value="major">{t('panel.major')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wide text-[#64748b]">Comment</label>
+            <label className="text-xs font-semibold uppercase tracking-wide text-[#64748b]">{t('panel.comment')}</label>
             <textarea
               value={comment}
               onChange={(event) => setComment(event.target.value)}
               rows={4}
               className="w-full rounded-lg border border-[#d6dee8] px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2563eb]/35"
-              placeholder="Workflow request notes"
+              placeholder={t('panel.requestNotes')}
             />
           </div>
         </div>
 
         <Button disabled={!documentId || saving} onClick={submit} className="w-full">
-          {saving ? 'Starting...' : 'Start workflow'}
+          {saving ? t('panel.starting') : t('panel.start')}
         </Button>
       </SheetContent>
     </Sheet>

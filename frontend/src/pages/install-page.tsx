@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import {
   bootstrapGed,
@@ -10,6 +11,7 @@ import {
   saveInstallFeatures,
   saveOrganization,
 } from '../api/installer';
+import { supportedLocales } from '../i18n';
 
 const steps = [
   'System checks',
@@ -21,6 +23,7 @@ const steps = [
 ];
 
 export function InstallPage() {
+  const { t, i18n } = useTranslation(['installer', 'common']);
   const navigate = useNavigate();
 
   const [activeStep, setActiveStep] = useState(0);
@@ -122,9 +125,28 @@ export function InstallPage() {
 
   return (
     <div className="mx-auto max-w-5xl p-4 md:p-8">
-      <header className="mb-6">
-        <h1 className="font-display text-3xl font-bold">OpenGED Installer</h1>
-        <p className="mt-1 text-sm text-slate">First deployment wizard for OpenGED</p>
+      <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <img src="/openged-logo.png" alt={t('common:appName')} className="h-12 w-auto shrink-0" />
+          <div>
+          <h1 className="font-display text-3xl font-bold">{t('installer:title')}</h1>
+          <p className="mt-1 text-sm text-slate">{t('installer:subtitle')}</p>
+          </div>
+        </div>
+        <select
+          value={i18n.language.split('-')[0]}
+          onChange={(event) => {
+            void i18n.changeLanguage(event.target.value);
+          }}
+          className="input h-9 w-40 py-1"
+          aria-label={t('common:language.label')}
+        >
+          {supportedLocales.map((locale) => (
+            <option key={locale} value={locale}>
+              {t(`common:language.${locale}`)}
+            </option>
+          ))}
+        </select>
       </header>
 
       <div className="grid gap-6 md:grid-cols-[220px_1fr]">

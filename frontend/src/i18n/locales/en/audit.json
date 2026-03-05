@@ -1,0 +1,11 @@
+{
+  "title": "Audit",
+  "description": "Security and lifecycle events across the platform.",
+  "filterPlaceholder": "Filter by event type",
+  "event": "Event",
+  "object": "Object",
+  "actor": "Actor",
+  "time": "Time",
+  "system": "system",
+  "empty": "No audit events for this filter."
+}

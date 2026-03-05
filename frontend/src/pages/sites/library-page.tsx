@@ -2,6 +2,7 @@ import { ChangeEvent, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ChevronRight, Filter, FolderPlus, Search } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { createFolder, getLibraryItems } from '../../api/dms';
 import {
@@ -29,16 +30,11 @@ import { useDebouncedValue } from '../../hooks/use-debounced-value';
 import { formatDate } from '../../lib/utils';
 import { LibraryDocumentItem } from '../../types/domain';
 
-const savedViews = [
-  { key: 'all', label: 'All documents' },
-  { key: 'mine', label: 'My documents' },
-  { key: 'drafts', label: 'Drafts' },
-  { key: 'pending', label: 'Pending approval' },
-  { key: 'published', label: 'Published' },
-  { key: 'archived', label: 'Archived' },
-] as const;
+const savedViews = ['all', 'mine', 'drafts', 'pending', 'published', 'archived'] as const;
+type SavedViewKey = (typeof savedViews)[number];
 
 export function LibraryPage() {
+  const { t } = useTranslation(['library', 'common']);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -53,7 +49,7 @@ export function LibraryPage() {
 
   const [searchInput, setSearchInput] = useState('');
   const [selectedRows, setSelectedRows] = useState<LibraryRowItem[]>([]);
-  const [viewKey, setViewKey] = useState<(typeof savedViews)[number]['key']>('all');
+  const [viewKey, setViewKey] = useState<SavedViewKey>('all');
 
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [contentTypeFilter, setContentTypeFilter] = useState<string>('ALL');
@@ -297,27 +293,48 @@ export function LibraryPage() {
         <div className="border-b border-[#e2e8f0] px-4 py-3">
           <div className="flex items-center gap-2 text-xs text-[#64748b]">
             <Link to="/sites" className="hover:text-[#1d4ed8]">
-              Sites
+              {t('common:nav.sites')}
             </Link>
             <ChevronRight className="h-3.5 w-3.5" />
-            <span>{context?.site.name ?? 'Site'}</span>
+            <Link to="/sites" className="hover:text-[#1d4ed8]">
+              {context?.site.name ?? t('details.site')}
+            </Link>
             <ChevronRight className="h-3.5 w-3.5" />
-            <span>{context?.library.name ?? 'Library'}</span>
-            {context?.folder ? (
-              <>
-                <ChevronRight className="h-3.5 w-3.5" />
-                <span>{context.folder.name}</span>
-              </>
-            ) : null}
+            <Link
+              to={siteId && libraryId ? `/sites/${siteId}/libraries/${libraryId}` : '/sites'}
+              className="hover:text-[#1d4ed8]"
+            >
+              {context?.library.name ?? t('details.library')}
+            </Link>
+            {context?.folder?.trail.map((folder, index, trail) => {
+              const isCurrent = index === trail.length - 1;
+              const path = siteId && libraryId
+                ? `/sites/${siteId}/libraries/${libraryId}/folders/${folder.id}`
+                : '/sites';
+              return (
+                <div key={folder.id} className="contents">
+                  <ChevronRight className="h-3.5 w-3.5" />
+                  {isCurrent ? (
+                    <span>{folder.name}</span>
+                  ) : (
+                    <Link to={path} className="hover:text-[#1d4ed8]">
+                      {folder.name}
+                    </Link>
+                  )}
+                </div>
+              );
+            })}
           </div>
-          <h1 className="mt-1 text-lg font-semibold text-[#0f172a]">{context?.library.name ?? 'Library'}</h1>
-          <p className="text-xs text-[#64748b]">Last refreshed {formatDate(new Date())}</p>
+          <h1 className="mt-1 text-lg font-semibold text-[#0f172a]">{context?.library.name ?? t('details.library')}</h1>
+          <p className="text-xs text-[#64748b]">
+            {t('header.lastRefreshed')} {formatDate(new Date())}
+          </p>
         </div>
 
         <CommandBar
           selectedCount={selectedCount}
           onNewFolder={() => {
-            const name = window.prompt('Folder name');
+            const name = window.prompt(t('prompts.folderName'));
             if (!name) {
               return;
             }
@@ -342,15 +359,15 @@ export function LibraryPage() {
             const hasFolders = selectedRows.some((item) => item.kind === 'folder');
 
             if (documents.length === 0) {
-              window.alert('Select at least one document to delete.');
+              window.alert(t('prompts.selectDocumentToDelete'));
               return;
             }
 
             if (hasFolders) {
-              window.alert('Folder deletion is not available yet. Only selected documents will be deleted.');
+              window.alert(t('prompts.folderDeleteUnavailable'));
             }
 
-            const confirmed = window.confirm(`Delete ${documents.length} document(s)?`);
+            const confirmed = window.confirm(t('prompts.confirmDelete', { count: documents.length }));
             if (!confirmed) {
               return;
             }
@@ -365,19 +382,19 @@ export function LibraryPage() {
             <Input
               value={searchInput}
               onChange={(event) => setSearchInput(event.target.value)}
-              placeholder="Search in this library"
+              placeholder={t('filters.searchPlaceholder')}
               className="pl-8"
             />
           </div>
 
-          <Select value={viewKey} onValueChange={(value) => setViewKey(value as typeof viewKey)}>
+          <Select value={viewKey} onValueChange={(value) => setViewKey(value as SavedViewKey)}>
             <SelectTrigger className="w-48">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               {savedViews.map((view) => (
-                <SelectItem key={view.key} value={view.key}>
-                  {view.label}
+                <SelectItem key={view} value={view}>
+                  {t(`savedViews.${view}`)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -386,46 +403,46 @@ export function LibraryPage() {
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-44">
               <Filter className="mr-1 h-4 w-4" />
-              <SelectValue placeholder="Status" />
+              <SelectValue placeholder={t('filters.status')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ALL">All statuses</SelectItem>
-              <SelectItem value="DRAFT">Draft</SelectItem>
-              <SelectItem value="PENDING_VALIDATION">Pending</SelectItem>
-              <SelectItem value="PUBLISHED">Published</SelectItem>
-              <SelectItem value="ARCHIVED">Archived</SelectItem>
+              <SelectItem value="ALL">{t('statusOptions.all')}</SelectItem>
+              <SelectItem value="DRAFT">{t('statusOptions.draft')}</SelectItem>
+              <SelectItem value="PENDING_VALIDATION">{t('statusOptions.pending')}</SelectItem>
+              <SelectItem value="PUBLISHED">{t('statusOptions.published')}</SelectItem>
+              <SelectItem value="ARCHIVED">{t('statusOptions.archived')}</SelectItem>
             </SelectContent>
           </Select>
 
           <Select value={contentTypeFilter} onValueChange={setContentTypeFilter}>
             <SelectTrigger className="w-40">
-              <SelectValue placeholder="Type" />
+              <SelectValue placeholder={t('filters.type')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ALL">All types</SelectItem>
-              <SelectItem value="Document">Document</SelectItem>
-              <SelectItem value="Procedure">Procedure</SelectItem>
-              <SelectItem value="Contract">Contract</SelectItem>
-              <SelectItem value="Invoice">Invoice</SelectItem>
+              <SelectItem value="ALL">{t('contentTypes.all')}</SelectItem>
+              <SelectItem value="Document">{t('contentTypes.document')}</SelectItem>
+              <SelectItem value="Procedure">{t('contentTypes.procedure')}</SelectItem>
+              <SelectItem value="Contract">{t('contentTypes.contract')}</SelectItem>
+              <SelectItem value="Invoice">{t('contentTypes.invoice')}</SelectItem>
             </SelectContent>
           </Select>
 
           <Select value={confidentialityFilter} onValueChange={setConfidentialityFilter}>
             <SelectTrigger className="w-44">
-              <SelectValue placeholder="Confidentiality" />
+              <SelectValue placeholder={t('filters.confidentiality')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ALL">All classifications</SelectItem>
-              <SelectItem value="Public">Public</SelectItem>
-              <SelectItem value="Internal">Internal</SelectItem>
-              <SelectItem value="Restricted">Restricted</SelectItem>
+              <SelectItem value="ALL">{t('confidentialityOptions.all')}</SelectItem>
+              <SelectItem value="Public">{t('confidentialityOptions.public')}</SelectItem>
+              <SelectItem value="Internal">{t('confidentialityOptions.internal')}</SelectItem>
+              <SelectItem value="Restricted">{t('confidentialityOptions.restricted')}</SelectItem>
             </SelectContent>
           </Select>
 
           <Input
             value={authorFilter}
             onChange={(event) => setAuthorFilter(event.target.value)}
-            placeholder="Author"
+            placeholder={t('filters.author')}
             className="w-40"
           />
 
@@ -434,7 +451,7 @@ export function LibraryPage() {
             value={modifiedFrom}
             onChange={(event) => setModifiedFrom(event.target.value)}
             className="w-40"
-            title="Modified from"
+            title={t('filters.modifiedFrom')}
           />
 
           <Input
@@ -442,7 +459,7 @@ export function LibraryPage() {
             value={modifiedTo}
             onChange={(event) => setModifiedTo(event.target.value)}
             className="w-40"
-            title="Modified to"
+            title={t('filters.modifiedTo')}
           />
 
           <Select
@@ -454,20 +471,20 @@ export function LibraryPage() {
             }}
           >
             <SelectTrigger className="w-48">
-              <SelectValue placeholder="Sort" />
+              <SelectValue placeholder={t('filters.sort')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="updatedAt:desc">Modified (newest)</SelectItem>
-              <SelectItem value="updatedAt:asc">Modified (oldest)</SelectItem>
-              <SelectItem value="createdAt:desc">Created (newest)</SelectItem>
-              <SelectItem value="createdAt:asc">Created (oldest)</SelectItem>
-              <SelectItem value="title:asc">Name (A-Z)</SelectItem>
-              <SelectItem value="title:desc">Name (Z-A)</SelectItem>
+              <SelectItem value="updatedAt:desc">{t('sortOptions.updatedDesc')}</SelectItem>
+              <SelectItem value="updatedAt:asc">{t('sortOptions.updatedAsc')}</SelectItem>
+              <SelectItem value="createdAt:desc">{t('sortOptions.createdDesc')}</SelectItem>
+              <SelectItem value="createdAt:asc">{t('sortOptions.createdAsc')}</SelectItem>
+              <SelectItem value="title:asc">{t('sortOptions.titleAsc')}</SelectItem>
+              <SelectItem value="title:desc">{t('sortOptions.titleDesc')}</SelectItem>
             </SelectContent>
           </Select>
 
           <Button variant="secondary" size="sm" onClick={onCheckin} disabled={!selectedDocument}>
-            Check-in
+            {t('common:actions.checkIn')}
           </Button>
 
           <Button
@@ -480,7 +497,7 @@ export function LibraryPage() {
             }}
             disabled={!selectedDocument}
           >
-            Preview
+            {t('common:actions.preview')}
           </Button>
 
           <Button
@@ -493,21 +510,21 @@ export function LibraryPage() {
             }}
             disabled={!selectedDocument}
           >
-            Automate
+            {t('common:actions.automate')}
           </Button>
 
           <Button
             variant="secondary"
             size="sm"
             onClick={() => {
-              const name = window.prompt('New folder name');
+              const name = window.prompt(t('prompts.newFolderName'));
               if (name) {
                 createFolderMutation.mutate(name);
               }
             }}
           >
             <FolderPlus className="mr-1 h-4 w-4" />
-            Folder
+            {t('contentTypes.folder')}
           </Button>
         </div>
 

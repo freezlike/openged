@@ -1,4 +1,5 @@
 import { Activity, ClipboardList, FileClock, Info } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { MetadataForm } from './metadata-form';
 import { Badge } from '../ui/badge';
@@ -25,10 +26,12 @@ export function DetailsPane({
   onUpdateMetadata,
   onStartWorkflow,
 }: DetailsPaneProps) {
+  const { t } = useTranslation(['library']);
+
   if (!document) {
     return (
       <div className="flex h-full items-center justify-center p-6 text-sm text-[#64748b]">
-        Select a document to view details.
+        {t('details.empty')}
       </div>
     );
   }
@@ -37,7 +40,9 @@ export function DetailsPane({
     <div className="flex h-full flex-col border-l border-[#e2e8f0] bg-white">
       <div className="px-4 py-3">
         <p className="line-clamp-2 text-sm font-semibold text-[#0f172a]">{document.title}</p>
-        <p className="mt-1 text-xs text-[#64748b]">Updated {formatDate(document.updatedAt)}</p>
+        <p className="mt-1 text-xs text-[#64748b]">
+          {t('details.updated')} {formatDate(document.updatedAt)}
+        </p>
       </div>
 
       <Separator />
@@ -46,19 +51,19 @@ export function DetailsPane({
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="details" className="gap-1">
             <Info className="h-3.5 w-3.5" />
-            Details
+            {t('details.details')}
           </TabsTrigger>
           <TabsTrigger value="activity" className="gap-1">
             <Activity className="h-3.5 w-3.5" />
-            Activity
+            {t('details.activity')}
           </TabsTrigger>
           <TabsTrigger value="versions" className="gap-1">
             <FileClock className="h-3.5 w-3.5" />
-            Versions
+            {t('details.versions')}
           </TabsTrigger>
           <TabsTrigger value="workflow" className="gap-1">
             <ClipboardList className="h-3.5 w-3.5" />
-            Workflow
+            {t('details.workflow')}
           </TabsTrigger>
         </TabsList>
 
@@ -67,16 +72,16 @@ export function DetailsPane({
             <div className="space-y-4">
               <div className="rounded-lg border border-[#e2e8f0] bg-[#f8fafc] p-3 text-xs text-[#475569]">
                 <p>
-                  Site: <span className="font-medium text-[#0f172a]">{document.site.name}</span>
+                  {t('details.site')}: <span className="font-medium text-[#0f172a]">{document.site.name}</span>
                 </p>
                 <p>
-                  Library: <span className="font-medium text-[#0f172a]">{document.library.name}</span>
+                  {t('details.library')}: <span className="font-medium text-[#0f172a]">{document.library.name}</span>
                 </p>
                 <p>
-                  Created by: <span className="font-medium text-[#0f172a]">{document.createdBy.email}</span>
+                  {t('details.createdBy')}: <span className="font-medium text-[#0f172a]">{document.createdBy.email}</span>
                 </p>
                 <p>
-                  Status: <Badge variant="muted" className="ml-1">{document.status}</Badge>
+                  {t('details.status')}: <Badge variant="muted" className="ml-1">{document.status}</Badge>
                 </p>
               </div>
               <MetadataForm document={document} onSubmit={onUpdateMetadata} />
@@ -94,7 +99,7 @@ export function DetailsPane({
                   <p className="text-xs text-[#475569]">{event.actor?.email ?? 'System'}</p>
                 </div>
               ))}
-              {activity.length === 0 ? <p className="text-sm text-[#64748b]">No activity yet.</p> : null}
+              {activity.length === 0 ? <p className="text-sm text-[#64748b]">{t('details.noActivity')}</p> : null}
             </div>
           </ScrollArea>
         </TabsContent>
@@ -104,13 +109,15 @@ export function DetailsPane({
             <div className="space-y-3">
               {versions.map((version) => (
                 <div key={version.id} className="rounded-lg border border-[#e2e8f0] p-2">
-                  <p className="text-sm font-semibold text-[#0f172a]">Version {version.version}</p>
+                  <p className="text-sm font-semibold text-[#0f172a]">
+                    {t('details.version')} {version.version}
+                  </p>
                   <p className="text-xs text-[#64748b]">{version.type}</p>
                   <p className="text-xs text-[#475569]">{version.comment}</p>
                   <p className="text-xs text-[#64748b]">{formatDate(version.createdAt)}</p>
                 </div>
               ))}
-              {versions.length === 0 ? <p className="text-sm text-[#64748b]">No versions available.</p> : null}
+              {versions.length === 0 ? <p className="text-sm text-[#64748b]">{t('details.noVersions')}</p> : null}
             </div>
           </ScrollArea>
         </TabsContent>
@@ -123,7 +130,7 @@ export function DetailsPane({
                 onClick={onStartWorkflow}
                 className="w-full rounded-lg border border-[#bfdbfe] bg-[#eff6ff] px-3 py-2 text-left text-sm font-medium text-[#1d4ed8]"
               >
-                Start workflow for this document
+                {t('details.startWorkflow')}
               </button>
 
               {workflowHistory.map((workflow) => (
@@ -131,19 +138,23 @@ export function DetailsPane({
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-semibold text-[#0f172a]">{workflow.state}</p>
                     <Badge variant={workflow.endedAt ? 'muted' : 'warning'}>
-                      {workflow.endedAt ? 'Closed' : 'Active'}
+                      {workflow.endedAt ? t('details.closed') : t('details.active')}
                     </Badge>
                   </div>
                   {workflow.workflowDef?.name ? (
-                    <p className="mt-1 text-xs text-[#475569]">Workflow: {workflow.workflowDef.name}</p>
+                    <p className="mt-1 text-xs text-[#475569]">
+                      {t('details.workflowName')}: {workflow.workflowDef.name}
+                    </p>
                   ) : null}
-                  <p className="mt-1 text-xs text-[#64748b]">Started {formatDate(workflow.startedAt)}</p>
+                  <p className="mt-1 text-xs text-[#64748b]">
+                    {t('details.started')} {formatDate(workflow.startedAt)}
+                  </p>
                   <div className="mt-2 space-y-2">
                     {workflow.tasks.map((task) => (
                       <div key={task.id} className="rounded-md bg-[#f8fafc] p-2 text-xs">
-                        <p className="font-semibold text-[#0f172a]">Task {task.status}</p>
-                        <p className="text-[#64748b]">Assigned to {task.assignedUser.email}</p>
-                        <p className="text-[#64748b]">Due {formatDate(task.dueDate)}</p>
+                        <p className="font-semibold text-[#0f172a]">{t('details.task')} {task.status}</p>
+                        <p className="text-[#64748b]">{t('details.assignedTo')} {task.assignedUser.email}</p>
+                        <p className="text-[#64748b]">{t('details.due')} {formatDate(task.dueDate)}</p>
                         {task.comment ? <p className="text-[#334155]">{task.comment}</p> : null}
                       </div>
                     ))}
@@ -152,7 +163,7 @@ export function DetailsPane({
               ))}
 
               {workflowHistory.length === 0 ? (
-                <p className="text-sm text-[#64748b]">No workflow history on this document.</p>
+                <p className="text-sm text-[#64748b]">{t('details.noWorkflow')}</p>
               ) : null}
             </div>
           </ScrollArea>

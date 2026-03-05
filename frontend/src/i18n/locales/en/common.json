@@ -1,0 +1,81 @@
+{
+  "appName": "OpenGED",
+  "search": "Search",
+  "loading": "Loading...",
+  "signOut": "Sign out",
+  "language": {
+    "label": "Language",
+    "fr": "Français",
+    "en": "English",
+    "ar": "العربية"
+  },
+  "shell": {
+    "workspace": "Modern Workspace",
+    "title": "Document Management",
+    "expandSidebar": "Expand sidebar",
+    "collapseSidebar": "Collapse sidebar",
+    "openMenu": "Open navigation menu"
+  },
+  "nav": {
+    "sites": "Sites",
+    "recent": "Recent",
+    "favorites": "Favorites",
+    "tasks": "My tasks",
+    "audit": "Audit",
+    "users": "Users",
+    "workflows": "Workflows",
+    "admin": "Admin"
+  },
+  "actions": {
+    "new": "New",
+    "upload": "Upload",
+    "editMetadata": "Edit metadata",
+    "share": "Share",
+    "download": "Download",
+    "versionHistory": "Version history",
+    "automate": "Automate",
+    "startWorkflow": "Start workflow",
+    "delete": "Delete",
+    "apply": "Apply",
+    "save": "Save",
+    "cancel": "Cancel",
+    "back": "Back",
+    "continue": "Continue",
+    "preview": "Preview",
+    "checkIn": "Check-in",
+    "pinToTop": "Pin to top"
+  },
+  "status": {
+    "draft": "Draft",
+    "pending": "Pending",
+    "published": "Published",
+    "archived": "Archived",
+    "deleted": "Deleted",
+    "open": "Open",
+    "completed": "Completed",
+    "rejected": "Rejected",
+    "canceled": "Canceled"
+  },
+  "empty": {
+    "noData": "No data",
+    "noResults": "No results"
+  },
+  "smart": {
+    "clearSelection": "Clear selection",
+    "loadingSuggestions": "Loading suggestions...",
+    "typeToSearch": "Type at least {{count}} characters to search.",
+    "noSuggestions": "No suggestions",
+    "create": "Create \"{{value}}\"",
+    "remove": "Remove {{value}}"
+  },
+  "pages": {
+    "recent": {
+      "title": "Recent",
+      "description": "Recent documents shortcut is available in this UI baseline. Hook it to a dedicated backend endpoint when needed."
+    },
+    "favorites": {
+      "title": "Favorites",
+      "description": "Favorites are ready for local/user persistence (star/bookmark actions can be wired in next iteration)."
+    }
+  }
+}

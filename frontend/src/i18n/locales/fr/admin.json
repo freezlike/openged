@@ -1,0 +1,36 @@
+{
+  "audit": "Audit",
+  "workflows": "Workflows",
+  "users": {
+    "title": "Gestion des utilisateurs",
+    "description": "Créez des comptes locaux et attribuez les rôles globaux.",
+    "noAccess": "Vous n'avez pas les droits nécessaires pour gérer les utilisateurs.",
+    "create": {
+      "title": "Créer un utilisateur local",
+      "email": "Email",
+      "password": "Mot de passe",
+      "roles": "Rôles",
+      "submit": "Créer l'utilisateur"
+    },
+    "list": {
+      "title": "Utilisateurs",
+      "search": "Rechercher par email",
+      "createdAt": "Créé le",
+      "lastLogin": "Dernière connexion",
+      "editRoles": "Modifier les rôles",
+      "roleEditor": "Sélectionnez les rôles globaux",
+      "empty": "Aucun utilisateur trouvé.",
+      "loadError": "Impossible de charger la liste des utilisateurs."
+    },
+    "status": {
+      "ACTIVE": "Actif",
+      "DISABLED": "Désactivé",
+      "PENDING": "En attente"
+    },
+    "authSource": {
+      "LOCAL": "Local",
+      "OIDC": "OIDC",
+      "SAML": "SAML"
+    }
+  }
+}

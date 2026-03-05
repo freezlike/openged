@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { DocumentStatus, ObjectType, PrincipalType } from '@prisma/client';
-import { Prisma } from '@prisma/client';
+import { DocumentStatus, ObjectType, PrincipalType, Prisma } from '@prisma/client';
 
 import { PrismaService } from '../../database/prisma.service';
 import { AuditService } from '../audit/audit.service';
@@ -169,6 +168,12 @@ export class DmsService {
         })
       : null;
 
+    if (folder && folder.libraryId !== libraryId) {
+      throw new NotFoundException('Folder not found');
+    }
+
+    const folderTrail = folder ? await this.buildFolderTrail(folder.id) : [];
+
     const folderItems = await this.prisma.folder.findMany({
       where: {
         libraryId,
@@ -292,6 +297,7 @@ export class DmsService {
               name: folder.name,
               parentId: folder.parentId,
               path: folder.path,
+              trail: folderTrail,
             }
           : null,
       },
@@ -311,6 +317,32 @@ export class DmsService {
         total: totalDocuments,
       },
     };
+  }
+
+  private async buildFolderTrail(folderId: string): Promise<Array<{ id: string; name: string }>> {
+    const trail: Array<{ id: string; name: string }> = [];
+    let currentId: string | null = folderId;
+
+    while (currentId) {
+      const currentFolder: { id: string; name: string; parentId: string | null } | null =
+        await this.prisma.folder.findUnique({
+        where: { id: currentId },
+        select: {
+          id: true,
+          name: true,
+          parentId: true,
+        },
+      });
+
+      if (!currentFolder) {
+        break;
+      }
+
+      trail.unshift({ id: currentFolder.id, name: currentFolder.name });
+      currentId = currentFolder.parentId;
+    }
+
+    return trail;
   }
 
   async createDefaultGedSetup(superAdminId: string) {

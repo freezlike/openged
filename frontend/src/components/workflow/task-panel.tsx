@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
@@ -14,6 +15,7 @@ interface TaskPanelProps {
 }
 
 export function TaskPanel({ open, onOpenChange, task, onDecision }: TaskPanelProps) {
+  const { t } = useTranslation('workflow');
   const [comment, setComment] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -41,8 +43,8 @@ export function TaskPanel({ open, onOpenChange, task, onDecision }: TaskPanelPro
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full max-w-lg space-y-4">
         <SheetHeader>
-          <SheetTitle>Task review</SheetTitle>
-          <SheetDescription>Approve or reject this validation request.</SheetDescription>
+          <SheetTitle>{t('tasks.taskReview')}</SheetTitle>
+          <SheetDescription>{t('tasks.taskReviewDescription')}</SheetDescription>
         </SheetHeader>
 
         <div className="space-y-3 rounded-lg border border-[#e2e8f0] bg-[#f8fafc] p-3">
@@ -54,30 +56,32 @@ export function TaskPanel({ open, onOpenChange, task, onDecision }: TaskPanelPro
             <Badge variant="warning">{task.workflow.state}</Badge>
             <Badge variant={task.status === 'OPEN' ? 'warning' : 'muted'}>{task.status}</Badge>
           </div>
-          <p className="text-xs text-[#475569]">Due: {formatDate(task.dueDate)}</p>
+          <p className="text-xs text-[#475569]">
+            {t('tasks.due')}: {formatDate(task.dueDate)}
+          </p>
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs font-semibold uppercase tracking-wide text-[#64748b]">Comment</label>
+          <label className="text-xs font-semibold uppercase tracking-wide text-[#64748b]">{t('tasks.decisionComment')}</label>
           <textarea
             value={comment}
             onChange={(event) => setComment(event.target.value)}
             rows={4}
             className="w-full rounded-lg border border-[#d6dee8] px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2563eb]/35"
-            placeholder="Decision notes"
+            placeholder={t('tasks.decisionNotes')}
           />
         </div>
 
         <div className="grid grid-cols-2 gap-2">
           <Button disabled={saving || task.status !== 'OPEN'} onClick={() => decide('COMPLETED')}>
-            Approve
+            {t('tasks.approve')}
           </Button>
           <Button
             variant="danger"
             disabled={saving || task.status !== 'OPEN'}
             onClick={() => decide('REJECTED')}
           >
-            Reject
+            {t('tasks.reject')}
           </Button>
         </div>
       </SheetContent>

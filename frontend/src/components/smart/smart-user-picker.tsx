@@ -6,5 +6,5 @@ type SmartUserPickerProps = Omit<SmartAutocompleteProps, 'entity' | 'allowCreate
 };
 
 export function SmartUserPicker(props: SmartUserPickerProps) {
-  return <SmartAutocomplete {...props} entity="users" allowCreate={false} />;
+  return <SmartAutocomplete {...props} entity="users" allowCreate={false} activeOnly minChars={2} />;
 }

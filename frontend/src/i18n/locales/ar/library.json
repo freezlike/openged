@@ -1,0 +1,131 @@
+{
+  "sites": {
+    "title": "المواقع",
+    "description": "اختر موقعاً ومكتبة لفتح تجربة المستندات الحديثة.",
+    "loading": "جاري تحميل المواقع...",
+    "actions": {
+      "newSite": "موقع جديد",
+      "newLibrary": "مكتبة جديدة",
+      "create": "إنشاء",
+      "cancel": "إلغاء"
+    },
+    "form": {
+      "siteName": "اسم الموقع",
+      "siteDescription": "وصف الموقع (اختياري)",
+      "libraryName": "اسم المكتبة"
+    },
+    "emptyLibraries": "لا توجد مكتبات في هذا الموقع."
+  },
+  "savedViews": {
+    "all": "كل المستندات",
+    "mine": "مستنداتي",
+    "drafts": "المسودات",
+    "pending": "بانتظار الموافقة",
+    "published": "المنشورة",
+    "archived": "المؤرشفة"
+  },
+  "header": {
+    "lastRefreshed": "آخر تحديث"
+  },
+  "filters": {
+    "searchPlaceholder": "ابحث في هذه المكتبة",
+    "status": "الحالة",
+    "type": "النوع",
+    "confidentiality": "السرية",
+    "author": "المؤلف",
+    "modifiedFrom": "مُعدّل من",
+    "modifiedTo": "مُعدّل إلى",
+    "sort": "الترتيب"
+  },
+  "prompts": {
+    "folderName": "اسم المجلد",
+    "newFolderName": "اسم مجلد جديد",
+    "selectDocumentToDelete": "اختر مستنداً واحداً على الأقل للحذف.",
+    "folderDeleteUnavailable": "حذف المجلدات غير متاح حالياً. سيتم حذف المستندات المحددة فقط.",
+    "confirmDelete": "حذف {{count}} مستند(ات)؟"
+  },
+  "table": {
+    "itemsCount": "{{count}} عنصر",
+    "selectedCount": "{{count}} محدد",
+    "columns": "الأعمدة",
+    "name": "الاسم",
+    "modified": "آخر تعديل",
+    "modifiedBy": "عُدّل بواسطة",
+    "created": "تاريخ الإنشاء",
+    "createdBy": "أُنشئ بواسطة",
+    "type": "النوع",
+    "status": "الحالة",
+    "confidentiality": "السرية",
+    "noDocuments": "لا توجد مستندات تطابق هذا العرض.",
+    "selectAll": "تحديد الكل",
+    "selectRow": "تحديد الصف",
+    "openFolder": "فتح المجلد",
+    "open": "فتح",
+    "versions": "الإصدارات",
+    "managePermissions": "إدارة الأذونات"
+  },
+  "details": {
+    "empty": "اختر مستنداً لعرض التفاصيل.",
+    "details": "التفاصيل",
+    "activity": "النشاط",
+    "versions": "الإصدارات",
+    "workflow": "سير العمل",
+    "site": "الموقع",
+    "library": "المكتبة",
+    "createdBy": "أُنشئ بواسطة",
+    "status": "الحالة",
+    "noActivity": "لا يوجد نشاط.",
+    "noVersions": "لا توجد إصدارات.",
+    "startWorkflow": "بدء سير عمل لهذا المستند",
+    "noWorkflow": "لا يوجد سجل سير عمل لهذا المستند.",
+    "updated": "تم التحديث",
+    "started": "بدأ",
+    "closed": "مغلق",
+    "active": "نشط",
+    "assignedTo": "مُسند إلى",
+    "due": "الاستحقاق",
+    "workflowName": "سير العمل",
+    "task": "مهمة",
+    "version": "إصدار"
+  },
+  "metadata": {
+    "required": "مطلوب",
+    "optional": "اختياري",
+    "selectValue": "اختر قيمة",
+    "search": "بحث...",
+    "searchTaxonomy": "ابحث في قيم التصنيف...",
+    "selectUser": "اختر مستخدماً",
+    "optionalUser": "مستخدم اختياري",
+    "save": "حفظ البيانات الوصفية",
+    "saving": "جاري الحفظ..."
+  },
+  "contentTypes": {
+    "all": "كل الأنواع",
+    "document": "مستند",
+    "procedure": "إجراء",
+    "contract": "عقد",
+    "invoice": "فاتورة",
+    "folder": "مجلد"
+  },
+  "statusOptions": {
+    "all": "كل الحالات",
+    "draft": "مسودة",
+    "pending": "قيد الانتظار",
+    "published": "منشور",
+    "archived": "مؤرشف"
+  },
+  "confidentialityOptions": {
+    "all": "كل التصنيفات",
+    "public": "عام",
+    "internal": "داخلي",
+    "restricted": "مقيّد"
+  },
+  "sortOptions": {
+    "updatedDesc": "آخر تعديل (الأحدث)",
+    "updatedAsc": "آخر تعديل (الأقدم)",
+    "createdDesc": "الإنشاء (الأحدث)",
+    "createdAsc": "الإنشاء (الأقدم)",
+    "titleAsc": "الاسم (أ-ي)",
+    "titleDesc": "الاسم (ي-أ)"
+  }
+}

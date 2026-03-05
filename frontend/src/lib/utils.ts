@@ -11,7 +11,9 @@ export function formatDate(dateValue?: string | Date | null) {
   }
 
   const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
-  return new Intl.DateTimeFormat('en-US', {
+  const locale = document.documentElement.lang || 'fr';
+
+  return new Intl.DateTimeFormat(locale, {
     year: 'numeric',
     month: 'short',
     day: '2-digit',

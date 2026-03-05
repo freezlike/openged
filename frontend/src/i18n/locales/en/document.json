@@ -1,0 +1,13 @@
+{
+  "preview": {
+    "startWorkflow": "Start workflow",
+    "editMetadata": "Edit metadata",
+    "versions": "Versions",
+    "download": "Download",
+    "loading": "Loading preview...",
+    "notFound": "Document not found.",
+    "unavailable": "Preview unavailable for this document. Use Download instead.",
+    "iframeTitle": "Document preview",
+    "imageAlt": "Document preview"
+  }
+}

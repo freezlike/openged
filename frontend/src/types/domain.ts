@@ -19,7 +19,15 @@ export interface SiteSummary {
 export interface LibraryContext {
   site: { id: string; name: string };
   library: { id: string; name: string };
-  folder: { id: string; name: string; parentId?: string | null; path: string } | null;
+  folder:
+    | {
+        id: string;
+        name: string;
+        parentId?: string | null;
+        path: string;
+        trail: Array<{ id: string; name: string }>;
+      }
+    | null;
 }
 
 export interface LibraryFolderItem {
@@ -176,5 +184,30 @@ export interface MyTask {
     site: { id: string; name: string };
     library: { id: string; name: string };
     contentType: string;
+  };
+}
+
+export interface AdminRole {
+  code: string;
+  name: string;
+}
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  authSource: 'LOCAL' | 'OIDC' | 'SAML';
+  status: 'ACTIVE' | 'DISABLED' | 'PENDING';
+  preferredLocale: 'FR' | 'EN' | 'AR' | null;
+  createdAt: string;
+  lastLogin?: string | null;
+  roles: string[];
+}
+
+export interface AdminUsersResponse {
+  items: AdminUser[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
   };
 }

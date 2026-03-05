@@ -1,0 +1,36 @@
+{
+  "audit": "Audit",
+  "workflows": "Workflows",
+  "users": {
+    "title": "User management",
+    "description": "Create local accounts and assign global roles.",
+    "noAccess": "You do not have permission to manage users.",
+    "create": {
+      "title": "Create local user",
+      "email": "Email",
+      "password": "Password",
+      "roles": "Roles",
+      "submit": "Create user"
+    },
+    "list": {
+      "title": "Users",
+      "search": "Search by email",
+      "createdAt": "Created at",
+      "lastLogin": "Last login",
+      "editRoles": "Edit roles",
+      "roleEditor": "Select global roles",
+      "empty": "No users found.",
+      "loadError": "Unable to load users list."
+    },
+    "status": {
+      "ACTIVE": "Active",
+      "DISABLED": "Disabled",
+      "PENDING": "Pending"
+    },
+    "authSource": {
+      "LOCAL": "Local",
+      "OIDC": "OIDC",
+      "SAML": "SAML"
+    }
+  }
+}

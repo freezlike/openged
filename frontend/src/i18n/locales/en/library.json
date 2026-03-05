@@ -1,0 +1,131 @@
+{
+  "sites": {
+    "title": "Sites",
+    "description": "Choose a site and library to open the modern document experience.",
+    "loading": "Loading sites...",
+    "actions": {
+      "newSite": "New site",
+      "newLibrary": "New library",
+      "create": "Create",
+      "cancel": "Cancel"
+    },
+    "form": {
+      "siteName": "Site name",
+      "siteDescription": "Site description (optional)",
+      "libraryName": "Library name"
+    },
+    "emptyLibraries": "No libraries in this site."
+  },
+  "savedViews": {
+    "all": "All documents",
+    "mine": "My documents",
+    "drafts": "Drafts",
+    "pending": "Pending approval",
+    "published": "Published",
+    "archived": "Archived"
+  },
+  "header": {
+    "lastRefreshed": "Last refreshed"
+  },
+  "filters": {
+    "searchPlaceholder": "Search in this library",
+    "status": "Status",
+    "type": "Type",
+    "confidentiality": "Confidentiality",
+    "author": "Author",
+    "modifiedFrom": "Modified from",
+    "modifiedTo": "Modified to",
+    "sort": "Sort"
+  },
+  "prompts": {
+    "folderName": "Folder name",
+    "newFolderName": "New folder name",
+    "selectDocumentToDelete": "Select at least one document to delete.",
+    "folderDeleteUnavailable": "Folder deletion is not available yet. Only selected documents will be deleted.",
+    "confirmDelete": "Delete {{count}} document(s)?"
+  },
+  "table": {
+    "itemsCount": "{{count}} items",
+    "selectedCount": "{{count}} selected",
+    "columns": "Columns",
+    "name": "Name",
+    "modified": "Modified",
+    "modifiedBy": "Modified by",
+    "created": "Created",
+    "createdBy": "Created by",
+    "type": "Type",
+    "status": "Status",
+    "confidentiality": "Confidentiality",
+    "noDocuments": "No documents match this view.",
+    "selectAll": "Select all",
+    "selectRow": "Select row",
+    "openFolder": "Open folder",
+    "open": "Open",
+    "versions": "Versions",
+    "managePermissions": "Manage permissions"
+  },
+  "details": {
+    "empty": "Select a document to view details.",
+    "details": "Details",
+    "activity": "Activity",
+    "versions": "Versions",
+    "workflow": "Workflow",
+    "site": "Site",
+    "library": "Library",
+    "createdBy": "Created by",
+    "status": "Status",
+    "noActivity": "No activity yet.",
+    "noVersions": "No versions available.",
+    "startWorkflow": "Start workflow for this document",
+    "noWorkflow": "No workflow history on this document.",
+    "updated": "Updated",
+    "started": "Started",
+    "closed": "Closed",
+    "active": "Active",
+    "assignedTo": "Assigned to",
+    "due": "Due",
+    "workflowName": "Workflow",
+    "task": "Task",
+    "version": "Version"
+  },
+  "metadata": {
+    "required": "Required",
+    "optional": "Optional",
+    "selectValue": "Select value",
+    "search": "Search...",
+    "searchTaxonomy": "Search taxonomy values...",
+    "selectUser": "Select user",
+    "optionalUser": "Optional user",
+    "save": "Save metadata",
+    "saving": "Saving..."
+  },
+  "contentTypes": {
+    "all": "All types",
+    "document": "Document",
+    "procedure": "Procedure",
+    "contract": "Contract",
+    "invoice": "Invoice",
+    "folder": "Folder"
+  },
+  "statusOptions": {
+    "all": "All statuses",
+    "draft": "Draft",
+    "pending": "Pending",
+    "published": "Published",
+    "archived": "Archived"
+  },
+  "confidentialityOptions": {
+    "all": "All classifications",
+    "public": "Public",
+    "internal": "Internal",
+    "restricted": "Restricted"
+  },
+  "sortOptions": {
+    "updatedDesc": "Modified (newest)",
+    "updatedAsc": "Modified (oldest)",
+    "createdDesc": "Created (newest)",
+    "createdAsc": "Created (oldest)",
+    "titleAsc": "Name (A-Z)",
+    "titleDesc": "Name (Z-A)"
+  }
+}

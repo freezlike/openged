@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { LookupItem } from '../../api/lookup';
 import { SmartAutocomplete, SmartTaxonomyPicker, SmartUserPicker } from '../smart';
@@ -72,6 +73,7 @@ function toInputValue(value: unknown): string {
 }
 
 export function MetadataForm({ document, onSubmit }: MetadataFormProps) {
+  const { t } = useTranslation('library');
   const [saving, setSaving] = useState(false);
 
   const buildInitialValues = () => {
@@ -190,7 +192,7 @@ export function MetadataForm({ document, onSubmit }: MetadataFormProps) {
                           : '',
                     }));
                   }}
-                  placeholder={field.required ? 'Select user' : 'Optional user'}
+                  placeholder={field.required ? t('metadata.selectUser') : t('metadata.optionalUser')}
                 />
               ) : lookupConfig.entity === 'taxonomy' ? (
                 <SmartTaxonomyPicker
@@ -212,7 +214,7 @@ export function MetadataForm({ document, onSubmit }: MetadataFormProps) {
                           : '',
                     }));
                   }}
-                  placeholder="Search taxonomy values..."
+                  placeholder={t('metadata.searchTaxonomy')}
                 />
               ) : (
                 <SmartAutocomplete
@@ -235,7 +237,7 @@ export function MetadataForm({ document, onSubmit }: MetadataFormProps) {
                           : '',
                     }));
                   }}
-                  placeholder="Search..."
+                  placeholder={t('metadata.search')}
                 />
               )
             ) : (
@@ -247,7 +249,7 @@ export function MetadataForm({ document, onSubmit }: MetadataFormProps) {
                     [field.id]: event.target.value,
                   }))
                 }
-                placeholder={field.required ? 'Required' : 'Optional'}
+                placeholder={field.required ? t('metadata.required') : t('metadata.optional')}
               />
             )}
           </div>
@@ -255,7 +257,7 @@ export function MetadataForm({ document, onSubmit }: MetadataFormProps) {
       })}
 
       <Button onClick={onSave} disabled={saving} className="w-full">
-        {saving ? 'Saving...' : 'Save metadata'}
+        {saving ? t('metadata.saving') : t('metadata.save')}
       </Button>
     </div>
   );

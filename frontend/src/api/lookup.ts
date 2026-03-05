@@ -12,6 +12,7 @@ export async function searchLookup(
   params?: {
     q?: string;
     taxonomy?: string;
+    activeOnly?: boolean;
   },
 ) {
   const { data } = await api.get<LookupItem[]>(`/lookup/${entity}`, { params });

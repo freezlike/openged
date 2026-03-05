@@ -1,3 +1,5 @@
+![OpenGED Logo](./openGed_LOGO.png)
+
 # OpenGED
 
 OpenGED is a production-oriented GED/DMS built from scratch with:
@@ -63,6 +65,8 @@ backend API (NestJS)
 
 ### Modern SharePoint-like UI
 - App shell with collapsible site/library nav
+- Language switcher (`fr` default, `en`, `ar`)
+- RTL support for Arabic (`dir=\"rtl\"` applied globally)
 - Library command bar (New, Upload, Edit metadata, Download, Versions, Automate, Delete)
 - Details view table with:
   - Multi-select + checkboxes
@@ -86,6 +90,18 @@ backend API (NestJS)
 - `/favorites`
 - `/audit`
 - `/admin/workflows/designer`
+
+## Internationalization (i18n)
+
+- Frontend i18n stack: `i18next` + `react-i18next`
+- Locale files by namespace:
+  - `frontend/src/i18n/locales/fr/*.json`
+  - `frontend/src/i18n/locales/en/*.json`
+  - `frontend/src/i18n/locales/ar/*.json`
+- Default locale: `fr`
+- Supported locales: `fr`, `en`, `ar`
+- Locale persistence: `localStorage` key `openged.locale`
+- Arabic mode applies RTL automatically (`<html dir=\"rtl\" lang=\"ar\">`)
 
 ## API Highlights
 

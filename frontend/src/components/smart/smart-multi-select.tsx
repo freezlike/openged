@@ -1,6 +1,7 @@
 import { KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2, Plus, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { createLookupValue, LookupEntity, LookupItem, searchLookup } from '../../api/lookup';
 import { useDebouncedValue } from '../../hooks/use-debounced-value';
@@ -27,6 +28,7 @@ export function SmartMultiSelect({
   disabled,
   className,
 }: SmartMultiSelectProps) {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -183,7 +185,7 @@ export function SmartMultiSelect({
               disabled={disabled}
               className="rounded p-0.5 hover:bg-[#dbeafe]"
               onClick={() => removeOption(value.id)}
-              aria-label={`Remove ${value.label}`}
+              aria-label={t('smart.remove', { value: value.label })}
             >
               <X className="h-3 w-3" />
             </button>
@@ -210,12 +212,12 @@ export function SmartMultiSelect({
           {lookupQuery.isLoading ? (
             <div className="flex items-center gap-2 px-3 py-2 text-xs text-[#64748b]">
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              Loading suggestions...
+              {t('smart.loadingSuggestions')}
             </div>
           ) : null}
 
           {!lookupQuery.isLoading && options.length === 0 && !createOption ? (
-            <p className="px-3 py-2 text-xs text-[#64748b]">No suggestions</p>
+            <p className="px-3 py-2 text-xs text-[#64748b]">{t('smart.noSuggestions')}</p>
           ) : null}
 
           {!lookupQuery.isLoading
@@ -253,7 +255,7 @@ export function SmartMultiSelect({
               ) : (
                 <Plus className="h-3.5 w-3.5" />
               )}
-              Create "{createOption}"
+              {t('smart.create', { value: createOption })}
             </button>
           ) : null}
         </div>

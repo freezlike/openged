@@ -1,0 +1,81 @@
+{
+  "appName": "OpenGED",
+  "search": "بحث",
+  "loading": "جاري التحميل...",
+  "signOut": "تسجيل الخروج",
+  "language": {
+    "label": "اللغة",
+    "fr": "Français",
+    "en": "English",
+    "ar": "العربية"
+  },
+  "shell": {
+    "workspace": "مساحة عمل حديثة",
+    "title": "إدارة المستندات",
+    "expandSidebar": "توسيع الشريط الجانبي",
+    "collapseSidebar": "طي الشريط الجانبي",
+    "openMenu": "فتح قائمة التنقل"
+  },
+  "nav": {
+    "sites": "المواقع",
+    "recent": "الأخيرة",
+    "favorites": "المفضلة",
+    "tasks": "مهامي",
+    "audit": "التدقيق",
+    "users": "المستخدمون",
+    "workflows": "سير العمل",
+    "admin": "الإدارة"
+  },
+  "actions": {
+    "new": "جديد",
+    "upload": "رفع",
+    "editMetadata": "تعديل البيانات الوصفية",
+    "share": "مشاركة",
+    "download": "تنزيل",
+    "versionHistory": "سجل الإصدارات",
+    "automate": "أتمتة",
+    "startWorkflow": "بدء سير عمل",
+    "delete": "حذف",
+    "apply": "تطبيق",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "back": "رجوع",
+    "continue": "متابعة",
+    "preview": "معاينة",
+    "checkIn": "إيداع",
+    "pinToTop": "تثبيت في الأعلى"
+  },
+  "status": {
+    "draft": "مسودة",
+    "pending": "قيد الانتظار",
+    "published": "منشور",
+    "archived": "مؤرشف",
+    "deleted": "محذوف",
+    "open": "مفتوح",
+    "completed": "مكتمل",
+    "rejected": "مرفوض",
+    "canceled": "ملغى"
+  },
+  "empty": {
+    "noData": "لا توجد بيانات",
+    "noResults": "لا توجد نتائج"
+  },
+  "smart": {
+    "clearSelection": "مسح التحديد",
+    "loadingSuggestions": "جارٍ تحميل الاقتراحات...",
+    "typeToSearch": "اكتب {{count}} أحرف على الأقل للبحث.",
+    "noSuggestions": "لا توجد اقتراحات",
+    "create": "إنشاء \"{{value}}\"",
+    "remove": "إزالة {{value}}"
+  },
+  "pages": {
+    "recent": {
+      "title": "الأخيرة",
+      "description": "اختصار المستندات الأخيرة متوفر. اربطه بنقطة API مخصصة عند الحاجة."
+    },
+    "favorites": {
+      "title": "المفضلة",
+      "description": "المفضلة جاهزة للحفظ لكل مستخدم (يمكن ربط إجراءات النجمة/الإشارة لاحقاً)."
+    }
+  }
+}

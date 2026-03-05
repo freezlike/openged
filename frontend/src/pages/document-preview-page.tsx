@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Download, FileClock, Play, Pencil } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import {
   downloadDocument,
@@ -18,6 +19,7 @@ import { Card } from '../components/ui/card';
 import { WorkflowStartPanel } from '../components/workflow/workflow-start-panel';
 
 export function DocumentPreviewPage() {
+  const { t } = useTranslation(['document']);
   const { documentId } = useParams<{ documentId: string }>();
   const queryClient = useQueryClient();
 
@@ -102,7 +104,7 @@ export function DocumentPreviewPage() {
         currentUrl = URL.createObjectURL(blob);
         setBlobUrl(currentUrl);
       } catch {
-        setPreviewError('Preview unavailable for this document. Use Download instead.');
+        setPreviewError(t('preview.unavailable'));
       }
     };
 
@@ -114,7 +116,7 @@ export function DocumentPreviewPage() {
         URL.revokeObjectURL(currentUrl);
       }
     };
-  }, [documentId, detailsQuery.data?.currentVersion?.mimeType]);
+  }, [documentId, detailsQuery.data?.currentVersion?.mimeType, t]);
 
   const previewMimeType = detailsQuery.data?.currentVersion?.mimeType ?? '';
 
@@ -128,18 +130,18 @@ export function DocumentPreviewPage() {
     }
 
     if (blobUrl && previewMimeType.includes('pdf')) {
-      return <iframe src={blobUrl} title="Document preview" className="h-[70vh] w-full rounded-lg border" />;
+      return <iframe src={blobUrl} title={t('preview.iframeTitle')} className="h-[70vh] w-full rounded-lg border" />;
     }
 
     if (blobUrl && previewMimeType.includes('image')) {
-      return <img src={blobUrl} alt="Document preview" className="max-h-[70vh] w-full rounded-lg object-contain" />;
+      return <img src={blobUrl} alt={t('preview.imageAlt')} className="max-h-[70vh] w-full rounded-lg object-contain" />;
     }
 
-    return <p className="text-sm text-[#64748b]">Loading preview...</p>;
-  }, [blobUrl, previewError, previewMimeType, textPreview]);
+    return <p className="text-sm text-[#64748b]">{t('preview.loading')}</p>;
+  }, [blobUrl, previewError, previewMimeType, t, textPreview]);
 
   if (!documentId) {
-    return <p className="text-sm text-[#64748b]">Document not found.</p>;
+    return <p className="text-sm text-[#64748b]">{t('preview.notFound')}</p>;
   }
 
   return (
@@ -148,11 +150,11 @@ export function DocumentPreviewPage() {
         <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 border-b border-[#e2e8f0] bg-white px-3 py-2">
           <Button variant="secondary" size="sm" onClick={() => setWorkflowOpen(true)}>
             <Play className="h-4 w-4" />
-            Start workflow
+            {t('preview.startWorkflow')}
           </Button>
           <Button variant="secondary" size="sm" onClick={() => void metadataMutation.reset()}>
             <Pencil className="h-4 w-4" />
-            Edit metadata
+            {t('preview.editMetadata')}
           </Button>
           <Button
             variant="secondary"
@@ -165,7 +167,7 @@ export function DocumentPreviewPage() {
             }}
           >
             <FileClock className="h-4 w-4" />
-            Versions
+            {t('preview.versions')}
           </Button>
           <Button
             variant="secondary"
@@ -181,7 +183,7 @@ export function DocumentPreviewPage() {
             }}
           >
             <Download className="h-4 w-4" />
-            Download
+            {t('preview.download')}
           </Button>
         </div>
 
@@ -212,6 +214,7 @@ export function DocumentPreviewPage() {
             documentId: payload.documentId,
             dueDate: payload.dueDate,
             assignedUserId: payload.assignedUserId,
+            workflowDefId: payload.workflowDefId,
             templateName: payload.templateName,
           });
         }}

@@ -1,5 +1,4 @@
 import { randomBytes } from 'crypto';
-
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';

@@ -31,7 +31,7 @@ export class LookupController {
       throw new UnauthorizedException();
     }
 
-    return this.lookupService.search(entity, query.q, query.taxonomy);
+    return this.lookupService.search(entity, query.q, query.taxonomy, query.activeOnly);
   }
 
   @Post(':entity')

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import { completeTask, listMyTasks } from '../api/workflow';
 import { TaskPanel } from '../components/workflow/task-panel';
@@ -12,6 +13,7 @@ import { formatDate } from '../lib/utils';
 import { MyTask } from '../types/domain';
 
 export function TasksPage() {
+  const { t } = useTranslation(['workflow', 'common']);
   const queryClient = useQueryClient();
 
   const [preset, setPreset] = useState<'dueSoon' | 'overdue' | 'completed' | 'ALL'>('ALL');
@@ -53,8 +55,8 @@ export function TasksPage() {
     <Card className="flex min-h-[calc(100vh-7.5rem)] overflow-hidden xl:h-[calc(100vh-7.5rem)]">
       <div className="flex min-h-0 flex-1 flex-col">
         <div className="border-b border-[#e2e8f0] px-4 py-3">
-          <h1 className="text-lg font-semibold text-[#0f172a]">My tasks</h1>
-          <p className="text-sm text-[#64748b]">Approve or reject pending workflow requests.</p>
+          <h1 className="text-lg font-semibold text-[#0f172a]">{t('workflow:tasks.title')}</h1>
+          <p className="text-sm text-[#64748b]">{t('workflow:tasks.description')}</p>
         </div>
 
         <div className="flex items-center gap-2 border-b border-[#e2e8f0] bg-white px-3 py-2">
@@ -63,10 +65,10 @@ export function TasksPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ALL">All presets</SelectItem>
-              <SelectItem value="dueSoon">Due soon</SelectItem>
-              <SelectItem value="overdue">Overdue</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="ALL">{t('workflow:tasks.allPresets')}</SelectItem>
+              <SelectItem value="dueSoon">{t('workflow:tasks.dueSoon')}</SelectItem>
+              <SelectItem value="overdue">{t('workflow:tasks.overdue')}</SelectItem>
+              <SelectItem value="completed">{t('workflow:tasks.completed')}</SelectItem>
             </SelectContent>
           </Select>
 
@@ -75,11 +77,11 @@ export function TasksPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ALL">All statuses</SelectItem>
-              <SelectItem value="OPEN">Open</SelectItem>
-              <SelectItem value="COMPLETED">Completed</SelectItem>
-              <SelectItem value="REJECTED">Rejected</SelectItem>
-              <SelectItem value="CANCELED">Canceled</SelectItem>
+              <SelectItem value="ALL">{t('workflow:tasks.allStatuses')}</SelectItem>
+              <SelectItem value="OPEN">{t('workflow:tasks.open')}</SelectItem>
+              <SelectItem value="COMPLETED">{t('workflow:tasks.completed')}</SelectItem>
+              <SelectItem value="REJECTED">{t('workflow:tasks.rejected')}</SelectItem>
+              <SelectItem value="CANCELED">{t('workflow:tasks.canceled')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -88,11 +90,11 @@ export function TasksPage() {
           <table className="w-full text-left text-sm">
             <thead className="sticky top-0 z-10 bg-white">
               <tr className="border-b border-[#e2e8f0] text-xs uppercase tracking-wide text-[#64748b]">
-                <th className="px-3 py-2">Document</th>
-                <th className="px-3 py-2">State</th>
-                <th className="px-3 py-2">Due</th>
-                <th className="px-3 py-2">Status</th>
-                <th className="px-3 py-2">Actions</th>
+                <th className="px-3 py-2">{t('workflow:tasks.document')}</th>
+                <th className="px-3 py-2">{t('workflow:tasks.state')}</th>
+                <th className="px-3 py-2">{t('workflow:tasks.due')}</th>
+                <th className="px-3 py-2">{t('workflow:tasks.status')}</th>
+                <th className="px-3 py-2">{t('workflow:tasks.actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -111,13 +113,15 @@ export function TasksPage() {
                   <td className="px-3 py-2">
                     <div className="flex items-center gap-1.5">
                       <Badge variant={task.status === 'OPEN' ? 'warning' : 'muted'}>{task.status}</Badge>
-                      {task.overdue ? <Badge variant="danger">Overdue</Badge> : null}
-                      {task.dueSoon && !task.overdue ? <Badge variant="default">Due soon</Badge> : null}
+                      {task.overdue ? <Badge variant="danger">{t('workflow:tasks.overdue')}</Badge> : null}
+                      {task.dueSoon && !task.overdue ? (
+                        <Badge variant="default">{t('workflow:tasks.dueSoon')}</Badge>
+                      ) : null}
                     </div>
                   </td>
                   <td className="px-3 py-2">
                     <Button variant="secondary" size="sm" onClick={() => setSelectedTask(task)}>
-                      Review
+                      {t('workflow:tasks.review')}
                     </Button>
                   </td>
                 </tr>
@@ -126,7 +130,7 @@ export function TasksPage() {
               {grouped.length === 0 ? (
                 <tr>
                   <td className="px-3 py-6 text-sm text-[#64748b]" colSpan={5}>
-                    No tasks for selected filters.
+                    {t('workflow:tasks.noTasks')}
                   </td>
                 </tr>
               ) : null}

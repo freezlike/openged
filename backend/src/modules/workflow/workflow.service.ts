@@ -1,6 +1,5 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { DocumentStatus, ObjectType, WorkflowTaskStatus } from '@prisma/client';
-import { Prisma } from '@prisma/client';
+import { DocumentStatus, ObjectType, Prisma, WorkflowTaskStatus } from '@prisma/client';
 
 import { PrismaService } from '../../database/prisma.service';
 import { AuditService } from '../audit/audit.service';
@@ -205,7 +204,11 @@ export class WorkflowService {
     return result;
   }
 
-  async availableWorkflows(_userId: string, _libraryId?: string, _contentTypeId?: string) {
+  async availableWorkflows(userId: string, libraryId?: string, contentTypeId?: string) {
+    void userId;
+    void libraryId;
+    void contentTypeId;
+
     const definitions = await this.prisma.workflowDef.findMany({
       orderBy: { name: 'asc' },
     });

@@ -6,6 +6,16 @@ export async function listSites() {
   return data;
 }
 
+export async function createSite(payload: { name: string; description?: string }) {
+  const { data } = await api.post<{ id: string; name: string; description?: string }>('/dms/sites', payload);
+  return data;
+}
+
+export async function createLibrary(siteId: string, payload: { name: string; settings?: Record<string, unknown> }) {
+  const { data } = await api.post(`/dms/sites/${siteId}/libraries`, payload);
+  return data;
+}
+
 export async function getLibraryItems(params: {
   libraryId: string;
   folderId?: string;

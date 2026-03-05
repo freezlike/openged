@@ -15,6 +15,7 @@ import {
   useNodesState,
 } from 'reactflow';
 import { Plus, Save } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import {
   createWorkflowDefinition,
@@ -24,6 +25,7 @@ import {
 import { SmartAutocomplete, SmartUserPicker } from '../../components/smart';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
+import { Checkbox } from '../../components/ui/checkbox';
 import { Input } from '../../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { useAuth } from '../../features/auth/auth-context';
@@ -31,6 +33,36 @@ import { WorkflowDefinitionJson } from '../../types/domain';
 import 'reactflow/dist/style.css';
 
 type NodeType = 'start' | 'state' | 'approval' | 'decision' | 'end';
+type WorkflowActionCode =
+  | 'submit'
+  | 'approve'
+  | 'reject'
+  | 'request_changes'
+  | 'validate'
+  | 'publish'
+  | 'archive'
+  | 'cancel';
+type DueDateUnit = 'hours' | 'days' | 'weeks';
+type DueDateRuleMode = 'none' | 'relative' | 'fixed';
+
+interface WorkflowDueDateRule {
+  mode: DueDateRuleMode;
+  amount?: number;
+  unit?: DueDateUnit;
+  businessDays?: boolean;
+  fixedDate?: string;
+}
+
+const WORKFLOW_ACTION_CODES: WorkflowActionCode[] = [
+  'submit',
+  'approve',
+  'reject',
+  'request_changes',
+  'validate',
+  'publish',
+  'archive',
+  'cancel',
+];
 
 interface WorkflowNodeData {
   label: string;
@@ -38,13 +70,119 @@ interface WorkflowNodeData {
   actorType?: 'user' | 'group';
   actorId?: string;
   actorLabel?: string;
-  dueDateRule?: string;
-  allowedActions?: string;
+  dueDateRule?: WorkflowDueDateRule;
+  allowedActions?: WorkflowActionCode[];
 }
 
 interface WorkflowEdgeData {
-  action?: string;
+  action?: WorkflowActionCode;
   conditions?: string;
+}
+
+function isWorkflowActionCode(value: string): value is WorkflowActionCode {
+  return WORKFLOW_ACTION_CODES.includes(value as WorkflowActionCode);
+}
+
+function parseAllowedActions(value: unknown): WorkflowActionCode[] {
+  if (Array.isArray(value)) {
+    return value
+      .filter((entry): entry is string => typeof entry === 'string')
+      .map((entry) => entry.trim().toLowerCase())
+      .filter(isWorkflowActionCode);
+  }
+
+  if (typeof value === 'string') {
+    return value
+      .split(/[,\s]+/g)
+      .map((entry) => entry.trim().toLowerCase())
+      .filter(Boolean)
+      .filter(isWorkflowActionCode);
+  }
+
+  return [];
+}
+
+function parseDueDateRule(value: unknown): WorkflowDueDateRule {
+  if (value && typeof value === 'object') {
+    const input = value as Record<string, unknown>;
+    const mode = typeof input.mode === 'string' ? input.mode : 'none';
+
+    if (mode === 'relative') {
+      const amount = typeof input.amount === 'number' ? Math.max(1, Math.trunc(input.amount)) : 1;
+      const unit = input.unit === 'hours' || input.unit === 'weeks' ? input.unit : 'days';
+      return {
+        mode: 'relative',
+        amount,
+        unit,
+        businessDays: Boolean(input.businessDays),
+      };
+    }
+
+    if (mode === 'fixed' && typeof input.fixedDate === 'string') {
+      return {
+        mode: 'fixed',
+        fixedDate: input.fixedDate,
+      };
+    }
+  }
+
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+
+    const relativeMatch = normalized.match(/^\+(\d+)(bd|d|h|w)$/);
+    if (relativeMatch) {
+      const amount = Number(relativeMatch[1]);
+      const token = relativeMatch[2];
+      const unit: DueDateUnit = token === 'h' ? 'hours' : token === 'w' ? 'weeks' : 'days';
+      return {
+        mode: 'relative',
+        amount,
+        unit,
+        businessDays: token === 'bd',
+      };
+    }
+
+    const fixedMatch = normalized.match(/^date:(\d{4}-\d{2}-\d{2})$/);
+    if (fixedMatch) {
+      return {
+        mode: 'fixed',
+        fixedDate: fixedMatch[1],
+      };
+    }
+  }
+
+  return { mode: 'none' };
+}
+
+function serializeDueDateRule(rule?: WorkflowDueDateRule): WorkflowDueDateRule | null {
+  if (!rule || rule.mode === 'none') {
+    return null;
+  }
+
+  if (rule.mode === 'fixed') {
+    return {
+      mode: 'fixed',
+      fixedDate: rule.fixedDate,
+    };
+  }
+
+  return {
+    mode: 'relative',
+    amount: rule.amount ?? 1,
+    unit: rule.unit ?? 'days',
+    businessDays: Boolean(rule.businessDays),
+  };
+}
+
+function actionLabel(
+  code: WorkflowActionCode | undefined,
+  translate: (key: string) => string,
+) {
+  if (!code) {
+    return '';
+  }
+
+  return translate(`designer.actions.${code}`);
 }
 
 function normalizeDefinition(definition?: WorkflowDefinitionJson): {
@@ -81,6 +219,9 @@ function normalizeDefinition(definition?: WorkflowDefinitionJson): {
 
   const nodes = definition.nodes.map((node, index) => {
     const type = (node.type as NodeType) ?? 'state';
+    const rawData =
+      typeof node.data === 'object' && node.data ? (node.data as Record<string, unknown>) : {};
+
     return {
       id: node.id,
       type: type === 'start' ? 'input' : type === 'end' ? 'output' : 'default',
@@ -88,7 +229,11 @@ function normalizeDefinition(definition?: WorkflowDefinitionJson): {
       data: {
         label: node.label ?? node.id,
         kind: type,
-        ...(typeof node.data === 'object' && node.data ? (node.data as Record<string, unknown>) : {}),
+        actorType: rawData.actorType === 'group' ? 'group' : 'user',
+        actorId: typeof rawData.actorId === 'string' ? rawData.actorId : undefined,
+        actorLabel: typeof rawData.actorLabel === 'string' ? rawData.actorLabel : undefined,
+        dueDateRule: parseDueDateRule(rawData.dueDateRule),
+        allowedActions: parseAllowedActions(rawData.allowedActions),
       } as WorkflowNodeData,
     } satisfies Node<WorkflowNodeData>;
   });
@@ -108,7 +253,7 @@ function normalizeDefinition(definition?: WorkflowDefinitionJson): {
         target,
         label: edge.action ?? '',
         data: {
-          action: edge.action,
+          action: edge.action && isWorkflowActionCode(edge.action) ? edge.action : undefined,
           conditions: edge.conditions ? JSON.stringify(edge.conditions) : '',
         },
         markerEnd: { type: MarkerType.ArrowClosed },
@@ -119,16 +264,19 @@ function normalizeDefinition(definition?: WorkflowDefinitionJson): {
   return { nodes, edges };
 }
 
-function validateDefinition(nodes: Node<WorkflowNodeData>[], edges: Edge<WorkflowEdgeData>[]) {
+function validateDefinition(
+  nodes: Node<WorkflowNodeData>[],
+  edges: Edge<WorkflowEdgeData>[],
+): 'startRequired' | 'endRequired' | 'disconnected' | null {
   const startNodes = nodes.filter((node) => node.data.kind === 'start' || node.type === 'input');
   const endNodes = nodes.filter((node) => node.data.kind === 'end' || node.type === 'output');
 
   if (startNodes.length === 0) {
-    return 'Workflow must contain a start node.';
+    return 'startRequired';
   }
 
   if (endNodes.length === 0) {
-    return 'Workflow must contain an end node.';
+    return 'endRequired';
   }
 
   const reachable = new Set<string>();
@@ -157,7 +305,7 @@ function validateDefinition(nodes: Node<WorkflowNodeData>[], edges: Edge<Workflo
   }
 
   if (nodes.some((node) => !reachable.has(node.id))) {
-    return 'Workflow contains disconnected nodes.';
+    return 'disconnected';
   }
 
   return null;
@@ -176,21 +324,22 @@ function toDefinitionJson(nodes: Node<WorkflowNodeData>[], edges: Edge<WorkflowE
         actorType: node.data.actorType,
         actorId: node.data.actorId,
         actorLabel: node.data.actorLabel,
-        dueDateRule: node.data.dueDateRule,
-        allowedActions: node.data.allowedActions,
+        dueDateRule: serializeDueDateRule(node.data.dueDateRule),
+        allowedActions: node.data.allowedActions ?? [],
       },
     })),
     edges: edges.map((edge) => ({
       id: edge.id,
       from: edge.source,
       to: edge.target,
-      action: edge.data?.action ?? (typeof edge.label === 'string' ? edge.label : undefined),
+      action: edge.data?.action,
       conditions: edge.data?.conditions ? { expression: edge.data.conditions } : null,
     })),
   };
 }
 
 export function WorkflowDesignerPage() {
+  const { t, i18n } = useTranslation('workflow');
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
@@ -213,6 +362,15 @@ export function WorkflowDesignerPage() {
 
   const [nodes, setNodes, onNodesChange] = useNodesState<WorkflowNodeData>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<WorkflowEdgeData>([]);
+
+  const workflowActionOptions = useMemo(
+    () =>
+      WORKFLOW_ACTION_CODES.map((code) => ({
+        code,
+        label: t(`designer.actions.${code}`),
+      })),
+    [t],
+  );
 
   useEffect(() => {
     if (!definitionsQuery.data || definitionsQuery.data.length === 0) {
@@ -249,18 +407,27 @@ export function WorkflowDesignerPage() {
     setSelectedEdgeId(null);
   }, [definitionsQuery.data, selectedDefinitionId, setEdges, setNodes]);
 
+  useEffect(() => {
+    setEdges((current) =>
+      current.map((edge) => ({
+        ...edge,
+        label: actionLabel(edge.data?.action, (key) => t(key)),
+      })),
+    );
+  }, [i18n.language, selectedDefinitionId, setEdges, t]);
+
   const selectedNode = nodes.find((node) => node.id === selectedNodeId) ?? null;
   const selectedEdge = edges.find((edge) => edge.id === selectedEdgeId) ?? null;
 
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!workflowName.trim()) {
-        throw new Error('Workflow name is required.');
+        throw new Error(t('designer.validation.nameRequired'));
       }
 
       const validationError = validateDefinition(nodes, edges);
       if (validationError) {
-        throw new Error(validationError);
+        throw new Error(t(`designer.validation.${validationError}`));
       }
 
       const definitionJson = toDefinitionJson(nodes, edges);
@@ -284,7 +451,7 @@ export function WorkflowDesignerPage() {
       setSelectedDefinitionId(saved.id);
     },
     onError: (error) => {
-      window.alert(error instanceof Error ? error.message : 'Unable to save workflow definition');
+      window.alert(error instanceof Error ? error.message : t('designer.validation.saveFailed'));
     },
   });
 
@@ -296,13 +463,13 @@ export function WorkflowDesignerPage() {
             ...connection,
             markerEnd: { type: MarkerType.ArrowClosed },
             data: { action: 'approve' },
-            label: 'approve',
+            label: actionLabel('approve', (key) => t(key)),
           },
           current,
         ),
       );
     },
-    [setEdges],
+    [setEdges, t],
   );
 
   const onSelectionChange = useCallback((selection: OnSelectionChangeParams) => {
@@ -334,7 +501,7 @@ export function WorkflowDesignerPage() {
   if (!isAdmin) {
     return (
       <Card className="p-6 text-sm text-[#64748b]">
-        You do not have access to the workflow designer.
+        {t('designer.noAccess')}
       </Card>
     );
   }
@@ -342,14 +509,14 @@ export function WorkflowDesignerPage() {
   return (
     <Card className="flex h-[calc(100vh-7.5rem)] min-h-[calc(100vh-7.5rem)] min-w-0 flex-col overflow-hidden">
       <div className="flex flex-wrap items-center gap-2 border-b border-[#e2e8f0] px-4 py-3">
-        <h1 className="mr-4 text-lg font-semibold text-[#0f172a]">Workflow designer</h1>
+        <h1 className="mr-4 text-lg font-semibold text-[#0f172a]">{t('designer.title')}</h1>
 
         <Select value={selectedDefinitionId} onValueChange={setSelectedDefinitionId}>
           <SelectTrigger className="w-72">
-            <SelectValue placeholder="Select workflow definition" />
+            <SelectValue placeholder={t('designer.selectDefinition')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="new">+ New workflow</SelectItem>
+            <SelectItem value="new">{t('designer.newWorkflow')}</SelectItem>
             {(definitionsQuery.data ?? []).map((definition) => (
               <SelectItem key={definition.id} value={definition.id}>
                 {definition.name}
@@ -361,14 +528,14 @@ export function WorkflowDesignerPage() {
         <Input
           value={workflowName}
           onChange={(event) => setWorkflowName(event.target.value)}
-          placeholder="Workflow name"
+          placeholder={t('designer.name')}
           className="w-64"
         />
 
         <Input
           value={workflowDescription}
           onChange={(event) => setWorkflowDescription(event.target.value)}
-          placeholder="Description (optional)"
+          placeholder={t('designer.description')}
           className="w-80"
         />
 
@@ -380,12 +547,12 @@ export function WorkflowDesignerPage() {
           }}
         >
           <Plus className="h-4 w-4" />
-          New
+          {t('designer.new')}
         </Button>
 
         <Button size="sm" onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
           <Save className="h-4 w-4" />
-          {saveMutation.isPending ? 'Saving...' : 'Save workflow'}
+          {saveMutation.isPending ? t('designer.saving') : t('designer.save')}
         </Button>
       </div>
 
@@ -393,21 +560,21 @@ export function WorkflowDesignerPage() {
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="flex flex-wrap items-center gap-2 border-b border-[#e2e8f0] px-4 py-2">
             <Button size="sm" variant="secondary" onClick={() => addNode('start')}>
-              Add Start
+              {t('designer.addStart')}
             </Button>
             <Button size="sm" variant="secondary" onClick={() => addNode('state')}>
-              Add State
+              {t('designer.addState')}
             </Button>
             <Button size="sm" variant="secondary" onClick={() => addNode('approval')}>
-              Add Approval
+              {t('designer.addApproval')}
             </Button>
             <Button size="sm" variant="secondary" onClick={() => addNode('decision')}>
-              Add Decision
+              {t('designer.addDecision')}
             </Button>
             <Button size="sm" variant="secondary" onClick={() => addNode('end')}>
-              Add End
+              {t('designer.addEnd')}
             </Button>
-            <p className="text-xs text-[#64748b]">Drag nodes, connect with handles, then configure on the right.</p>
+            <p className="text-xs text-[#64748b]">{t('designer.hint')}</p>
           </div>
 
           <div className="min-h-0 flex-1">
@@ -428,12 +595,12 @@ export function WorkflowDesignerPage() {
         </div>
 
         <aside className="w-[360px] shrink-0 border-l border-[#e2e8f0] bg-white px-4 py-3">
-          <h2 className="text-sm font-semibold text-[#0f172a]">Configuration</h2>
+          <h2 className="text-sm font-semibold text-[#0f172a]">{t('designer.configuration')}</h2>
 
           {selectedNode ? (
             <div className="mt-3 space-y-3">
               <div className="space-y-1">
-                <label className="text-xs font-semibold uppercase tracking-wide text-[#64748b]">Node label</label>
+                <label className="text-xs font-semibold uppercase tracking-wide text-[#64748b]">{t('designer.nodeLabel')}</label>
                 <Input
                   value={selectedNode.data.label}
                   onChange={(event) =>
@@ -455,7 +622,7 @@ export function WorkflowDesignerPage() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold uppercase tracking-wide text-[#64748b]">Node type</label>
+                <label className="text-xs font-semibold uppercase tracking-wide text-[#64748b]">{t('designer.nodeType')}</label>
                 <Select
                   value={
                     selectedNode.data.kind ??
@@ -487,17 +654,17 @@ export function WorkflowDesignerPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="start">Start</SelectItem>
-                    <SelectItem value="state">State</SelectItem>
-                    <SelectItem value="approval">Approval</SelectItem>
-                    <SelectItem value="decision">Decision</SelectItem>
-                    <SelectItem value="end">End</SelectItem>
+                    <SelectItem value="start">{t('designer.addStart')}</SelectItem>
+                    <SelectItem value="state">{t('designer.addState')}</SelectItem>
+                    <SelectItem value="approval">{t('designer.addApproval')}</SelectItem>
+                    <SelectItem value="decision">{t('designer.addDecision')}</SelectItem>
+                    <SelectItem value="end">{t('designer.addEnd')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold uppercase tracking-wide text-[#64748b]">Actor type</label>
+                <label className="text-xs font-semibold uppercase tracking-wide text-[#64748b]">{t('designer.actorType')}</label>
                 <Select
                   value={selectedNode.data.actorType ?? 'user'}
                   onValueChange={(value) =>
@@ -522,14 +689,14 @@ export function WorkflowDesignerPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="user">User</SelectItem>
-                    <SelectItem value="group">Group</SelectItem>
+                    <SelectItem value="user">{t('designer.user')}</SelectItem>
+                    <SelectItem value="group">{t('designer.group')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold uppercase tracking-wide text-[#64748b]">Assigned actor</label>
+                <label className="text-xs font-semibold uppercase tracking-wide text-[#64748b]">{t('designer.actor')}</label>
                 {(selectedNode.data.actorType ?? 'user') === 'group' ? (
                   <SmartAutocomplete
                     entity="groups"
@@ -558,7 +725,7 @@ export function WorkflowDesignerPage() {
                         ),
                       )
                     }
-                    placeholder="Select group..."
+                    placeholder={t('designer.selectGroup')}
                   />
                 ) : (
                   <SmartUserPicker
@@ -586,16 +753,18 @@ export function WorkflowDesignerPage() {
                         ),
                       )
                     }
-                    placeholder="Select user..."
+                    placeholder={t('panel.searchUser')}
+                    activeOnly
                   />
                 )}
+                <p className="text-xs text-[#64748b]">{t('designer.actorSourceHint')}</p>
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold uppercase tracking-wide text-[#64748b]">Due date rule</label>
-                <Input
-                  value={selectedNode.data.dueDateRule ?? ''}
-                  onChange={(event) =>
+                <label className="text-xs font-semibold uppercase tracking-wide text-[#64748b]">{t('designer.dueRule')}</label>
+                <Select
+                  value={selectedNode.data.dueDateRule?.mode ?? 'none'}
+                  onValueChange={(value) =>
                     setNodes((current) =>
                       current.map((node) =>
                         node.id === selectedNode.id
@@ -603,38 +772,185 @@ export function WorkflowDesignerPage() {
                               ...node,
                               data: {
                                 ...node.data,
-                                dueDateRule: event.target.value,
+                                dueDateRule:
+                                  value === 'relative'
+                                    ? {
+                                        mode: 'relative',
+                                        amount: 2,
+                                        unit: 'days',
+                                        businessDays: false,
+                                      }
+                                    : value === 'fixed'
+                                      ? {
+                                          mode: 'fixed',
+                                          fixedDate: '',
+                                        }
+                                      : { mode: 'none' },
                               },
                             }
                           : node,
                       ),
                     )
                   }
-                  placeholder="e.g. +2d business days"
-                />
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">{t('designer.dueModes.none')}</SelectItem>
+                    <SelectItem value="relative">{t('designer.dueModes.relative')}</SelectItem>
+                    <SelectItem value="fixed">{t('designer.dueModes.fixed')}</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {selectedNode.data.dueDateRule?.mode === 'relative' ? (
+                  <div className="grid grid-cols-[96px_1fr] gap-2">
+                    <Input
+                      type="number"
+                      min={1}
+                      value={selectedNode.data.dueDateRule.amount ?? 1}
+                      onChange={(event) =>
+                        setNodes((current) =>
+                          current.map((node) =>
+                            node.id === selectedNode.id
+                              ? {
+                                  ...node,
+                                  data: {
+                                    ...node.data,
+                                    dueDateRule: {
+                                      mode: 'relative',
+                                      amount: Math.max(1, Number(event.target.value) || 1),
+                                      unit: node.data.dueDateRule?.unit ?? 'days',
+                                      businessDays: Boolean(node.data.dueDateRule?.businessDays),
+                                    },
+                                  },
+                                }
+                              : node,
+                          ),
+                        )
+                      }
+                    />
+                    <Select
+                      value={selectedNode.data.dueDateRule.unit ?? 'days'}
+                      onValueChange={(value) =>
+                        setNodes((current) =>
+                          current.map((node) =>
+                            node.id === selectedNode.id
+                              ? {
+                                  ...node,
+                                  data: {
+                                    ...node.data,
+                                    dueDateRule: {
+                                      mode: 'relative',
+                                      amount: node.data.dueDateRule?.amount ?? 1,
+                                      unit: value as DueDateUnit,
+                                      businessDays: Boolean(node.data.dueDateRule?.businessDays),
+                                    },
+                                  },
+                                }
+                              : node,
+                          ),
+                        )
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="hours">{t('designer.dueUnits.hours')}</SelectItem>
+                        <SelectItem value="days">{t('designer.dueUnits.days')}</SelectItem>
+                        <SelectItem value="weeks">{t('designer.dueUnits.weeks')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <label className="col-span-2 flex items-center gap-2 text-xs text-[#475569]">
+                      <Checkbox
+                        checked={Boolean(selectedNode.data.dueDateRule.businessDays)}
+                        onCheckedChange={(checked) =>
+                          setNodes((current) =>
+                            current.map((node) =>
+                              node.id === selectedNode.id
+                                ? {
+                                    ...node,
+                                    data: {
+                                      ...node.data,
+                                      dueDateRule: {
+                                        mode: 'relative',
+                                        amount: node.data.dueDateRule?.amount ?? 1,
+                                        unit: node.data.dueDateRule?.unit ?? 'days',
+                                        businessDays: checked === true,
+                                      },
+                                    },
+                                  }
+                                : node,
+                            ),
+                          )
+                        }
+                      />
+                      {t('designer.businessDays')}
+                    </label>
+                  </div>
+                ) : null}
+
+                {selectedNode.data.dueDateRule?.mode === 'fixed' ? (
+                  <Input
+                    type="date"
+                    value={selectedNode.data.dueDateRule.fixedDate ?? ''}
+                    onChange={(event) =>
+                      setNodes((current) =>
+                        current.map((node) =>
+                          node.id === selectedNode.id
+                            ? {
+                                ...node,
+                                data: {
+                                  ...node.data,
+                                  dueDateRule: {
+                                    mode: 'fixed',
+                                    fixedDate: event.target.value,
+                                  },
+                                },
+                              }
+                            : node,
+                        ),
+                      )
+                    }
+                  />
+                ) : null}
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold uppercase tracking-wide text-[#64748b]">Allowed actions</label>
-                <Input
-                  value={selectedNode.data.allowedActions ?? ''}
-                  onChange={(event) =>
-                    setNodes((current) =>
-                      current.map((node) =>
-                        node.id === selectedNode.id
-                          ? {
-                              ...node,
-                              data: {
-                                ...node.data,
-                                allowedActions: event.target.value,
-                              },
-                            }
-                          : node,
-                      ),
-                    )
-                  }
-                  placeholder="approve,reject,request_changes"
-                />
+                <label className="text-xs font-semibold uppercase tracking-wide text-[#64748b]">{t('designer.allowedActions')}</label>
+                <div className="grid grid-cols-2 gap-2 rounded-lg border border-[#e2e8f0] p-2">
+                  {workflowActionOptions.map((action) => (
+                    <label key={action.code} className="flex items-center gap-2 text-xs text-[#334155]">
+                      <Checkbox
+                        checked={Boolean(selectedNode.data.allowedActions?.includes(action.code))}
+                        onCheckedChange={(checked) =>
+                          setNodes((current) =>
+                            current.map((node) =>
+                              node.id === selectedNode.id
+                                ? {
+                                    ...node,
+                                    data: {
+                                      ...node.data,
+                                      allowedActions:
+                                        checked === true
+                                          ? Array.from(
+                                              new Set([...(node.data.allowedActions ?? []), action.code]),
+                                            )
+                                          : (node.data.allowedActions ?? []).filter(
+                                              (entry) => entry !== action.code,
+                                            ),
+                                    },
+                                  }
+                                : node,
+                            ),
+                          )
+                        }
+                      />
+                      <span>{action.label}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
             </div>
           ) : null}
@@ -642,35 +958,56 @@ export function WorkflowDesignerPage() {
           {selectedEdge ? (
             <div className="mt-3 space-y-3">
               <p className="text-xs font-medium text-[#334155]">
-                Transition: {selectedEdge.source} → {selectedEdge.target}
+                {t('designer.transition')}: {selectedEdge.source} → {selectedEdge.target}
               </p>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold uppercase tracking-wide text-[#64748b]">Allowed action</label>
-                <Input
-                  value={selectedEdge.data?.action ?? ''}
-                  onChange={(event) =>
+                <label className="text-xs font-semibold uppercase tracking-wide text-[#64748b]">{t('designer.allowedAction')}</label>
+                <Select
+                  value={
+                    selectedEdge.data?.action && isWorkflowActionCode(selectedEdge.data.action)
+                      ? selectedEdge.data.action
+                      : 'none'
+                  }
+                  onValueChange={(value) =>
                     setEdges((current) =>
                       current.map((edge) =>
                         edge.id === selectedEdge.id
                           ? {
                               ...edge,
-                              label: event.target.value,
+                              label:
+                                value === 'none'
+                                  ? ''
+                                  : actionLabel(value as WorkflowActionCode, (key) => t(key)),
                               data: {
                                 ...edge.data,
-                                action: event.target.value,
+                                action:
+                                  value === 'none'
+                                    ? undefined
+                                    : (value as WorkflowActionCode),
                               },
                             }
                           : edge,
                       ),
                     )
                   }
-                  placeholder="approve / reject / request_changes"
-                />
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">{t('designer.none')}</SelectItem>
+                    {workflowActionOptions.map((action) => (
+                      <SelectItem key={action.code} value={action.code}>
+                        {action.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold uppercase tracking-wide text-[#64748b]">Condition expression</label>
+                <label className="text-xs font-semibold uppercase tracking-wide text-[#64748b]">{t('designer.condition')}</label>
                 <Input
                   value={selectedEdge.data?.conditions ?? ''}
                   onChange={(event) =>
@@ -696,7 +1033,7 @@ export function WorkflowDesignerPage() {
 
           {!selectedNode && !selectedEdge ? (
             <p className="mt-3 text-xs text-[#64748b]">
-              Select a node or transition to configure actors, due date rules, actions and conditions.
+              {t('designer.emptyConfig')}
             </p>
           ) : null}
         </aside>
