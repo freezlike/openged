@@ -5,6 +5,7 @@
   "description": "OpenGED backend API",
   "license": "MIT",
   "scripts": {
+    "prebuild": "npm run prisma:generate",
     "build": "nest build",
     "start": "node dist/main.js",
     "start:dev": "nest start --watch",
