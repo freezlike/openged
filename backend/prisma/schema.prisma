@@ -1,0 +1,471 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AuthSource {
+  LOCAL
+  OIDC
+  SAML
+
+  @@map("auth_source")
+}
+
+enum UserStatus {
+  ACTIVE
+  DISABLED
+  PENDING
+
+  @@map("user_status")
+}
+
+enum DocumentStatus {
+  DRAFT
+  PENDING_VALIDATION
+  PUBLISHED
+  ARCHIVED
+  DELETED
+
+  @@map("document_status")
+}
+
+enum VersionType {
+  MAJOR
+  MINOR
+
+  @@map("version_type")
+}
+
+enum WorkflowTaskStatus {
+  OPEN
+  COMPLETED
+  REJECTED
+  CANCELED
+
+  @@map("workflow_task_status")
+}
+
+enum ObjectType {
+  SITE
+  LIBRARY
+  FOLDER
+  DOCUMENT
+
+  @@map("object_type")
+}
+
+enum PrincipalType {
+  USER
+  GROUP
+
+  @@map("principal_type")
+}
+
+enum SystemStatus {
+  NOT_INSTALLED
+  INSTALLED
+
+  @@map("system_status")
+}
+
+enum StorageProvider {
+  LOCAL
+  S3
+
+  @@map("storage_provider")
+}
+
+enum FieldDataType {
+  TEXT
+  NUMBER
+  BOOLEAN
+  DATE
+  LIST
+  TAXONOMY
+  USER_REFERENCE
+
+  @@map("field_data_type")
+}
+
+enum AuthMode {
+  LOCAL_ONLY
+  LOCAL_AND_SSO
+  SSO_ONLY
+
+  @@map("auth_mode")
+}
+
+model User {
+  id                String               @id @default(uuid())
+  email             String               @unique
+  passwordHash      String?
+  authSource        AuthSource           @default(LOCAL)
+  externalId        String?              @unique
+  status            UserStatus           @default(ACTIVE)
+  mfaEnabled        Boolean              @default(false)
+  mfaSecret         String?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  lastLogin         DateTime?
+  ownedSites        Site[]
+  createdDocuments  Document[]           @relation("DocumentCreatedBy")
+  documentVersions  DocumentVersion[]    @relation("VersionCreatedBy")
+  workflowStarted   WorkflowInstance[]   @relation("WorkflowStartedBy")
+  workflowTasks     WorkflowTask[]       @relation("TaskAssignedTo")
+  auditEvents       AuditLog[]           @relation("AuditActor")
+  sessions          Session[]
+  passwordResets    PasswordResetToken[]
+  userGroups        UserGroup[]
+  userRoles         UserRole[]
+  checkedOutDocs    Document[]           @relation("DocumentCheckedOutBy")
+}
+
+model Group {
+  id        String      @id @default(uuid())
+  name      String      @unique
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  userGroups UserGroup[]
+  groupRoles GroupRole[]
+}
+
+model UserGroup {
+  userId    String
+  groupId   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@id([userId, groupId])
+  @@map("user_group")
+}
+
+model Role {
+  id         String     @id @default(uuid())
+  code       String     @unique
+  name       String
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  aclEntries AclEntry[]
+  userRoles  UserRole[]
+  groupRoles GroupRole[]
+}
+
+model UserRole {
+  userId    String
+  roleId    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@map("user_role")
+}
+
+model GroupRole {
+  groupId   String
+  roleId    String
+  createdAt DateTime @default(now())
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([groupId, roleId])
+  @@map("group_role")
+}
+
+model Site {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  ownerId     String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  owner       User      @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  libraries   Library[]
+
+  @@index([ownerId])
+}
+
+model Library {
+  id        String     @id @default(uuid())
+  siteId    String
+  name      String
+  settings  Json?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  site      Site       @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  folders   Folder[]
+  documents Document[]
+  fields    FieldDef[]
+
+  @@unique([siteId, name])
+  @@index([siteId])
+}
+
+model Folder {
+  id         String     @id @default(uuid())
+  libraryId  String
+  parentId   String?
+  name       String
+  path       String
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  library    Library    @relation(fields: [libraryId], references: [id], onDelete: Cascade)
+  parent     Folder?    @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children   Folder[]   @relation("FolderHierarchy")
+  documents  Document[]
+
+  @@unique([libraryId, path])
+  @@index([libraryId])
+  @@index([parentId])
+}
+
+model Document {
+  id                String            @id @default(uuid())
+  libraryId         String
+  folderId          String?
+  title             String
+  status            DocumentStatus    @default(DRAFT)
+  createdBy         String
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  currentVersionId  String?
+  checkedOutById    String?
+  checkedOutAt      DateTime?
+  contentTypeId     String?
+  library           Library           @relation(fields: [libraryId], references: [id], onDelete: Cascade)
+  folder            Folder?           @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  creator           User              @relation("DocumentCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
+  checkedOutBy      User?             @relation("DocumentCheckedOutBy", fields: [checkedOutById], references: [id], onDelete: SetNull)
+  versions          DocumentVersion[] @relation("DocumentVersions")
+  currentVersion    DocumentVersion?  @relation("DocumentCurrentVersion", fields: [currentVersionId], references: [id], onDelete: SetNull)
+  metadataEntries   DocumentMetadata[]
+  workflows         WorkflowInstance[]
+  contentType       ContentType?      @relation(fields: [contentTypeId], references: [id], onDelete: SetNull)
+
+  @@index([libraryId])
+  @@index([folderId])
+  @@index([status])
+  @@index([createdBy])
+}
+
+model DocumentVersion {
+  id                 String          @id @default(uuid())
+  documentId         String
+  versionMajor       Int
+  versionMinor       Int
+  versionType        VersionType
+  fileId             String
+  createdBy          String
+  createdAt          DateTime        @default(now())
+  comment            String
+  restoredFromId     String?
+  document           Document        @relation("DocumentVersions", fields: [documentId], references: [id], onDelete: Cascade)
+  file               FileObject      @relation(fields: [fileId], references: [id], onDelete: Restrict)
+  creator            User            @relation("VersionCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
+  restoredFrom       DocumentVersion? @relation("VersionRestore", fields: [restoredFromId], references: [id], onDelete: SetNull)
+  restoredChildren   DocumentVersion[] @relation("VersionRestore")
+  asCurrentFor       Document[]      @relation("DocumentCurrentVersion")
+
+  @@unique([documentId, versionMajor, versionMinor])
+  @@index([documentId, createdAt])
+}
+
+model FileObject {
+  id              String          @id @default(uuid())
+  storageProvider StorageProvider
+  objectKey       String          @unique
+  size            BigInt
+  mimeType        String
+  sha256          String
+  createdAt       DateTime        @default(now())
+  versions        DocumentVersion[]
+}
+
+model FieldDef {
+  id                String            @id @default(uuid())
+  libraryId         String
+  name              String
+  dataType          FieldDataType
+  required          Boolean           @default(false)
+  validation        Json?
+  defaultValue      Json?
+  uniqueValues      Boolean           @default(false)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  library           Library           @relation(fields: [libraryId], references: [id], onDelete: Cascade)
+  metadataEntries   DocumentMetadata[]
+
+  @@unique([libraryId, name])
+  @@index([libraryId])
+}
+
+model DocumentMetadata {
+  id          String    @id @default(uuid())
+  documentId  String
+  fieldId     String
+  value       Json
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  document    Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  field       FieldDef  @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, fieldId])
+  @@index([fieldId])
+}
+
+model AclEntry {
+  id            String        @id @default(uuid())
+  objectType    ObjectType
+  objectId      String
+  principalId   String
+  principalType PrincipalType
+  roleId        String
+  inherited     Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  role          Role          @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@index([objectType, objectId])
+  @@index([principalType, principalId])
+  @@index([roleId])
+}
+
+model WorkflowInstance {
+  id          String         @id @default(uuid())
+  documentId  String
+  state       String
+  startedBy   String
+  startedAt   DateTime       @default(now())
+  endedAt     DateTime?
+  document    Document       @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  starter     User           @relation("WorkflowStartedBy", fields: [startedBy], references: [id], onDelete: Restrict)
+  tasks       WorkflowTask[]
+
+  @@index([documentId])
+  @@index([state])
+}
+
+model WorkflowTask {
+  id             String             @id @default(uuid())
+  workflowId     String
+  assignedUserId String
+  status         WorkflowTaskStatus @default(OPEN)
+  dueDate        DateTime?
+  comment        String?
+  createdAt      DateTime           @default(now())
+  completedAt    DateTime?
+  workflow       WorkflowInstance   @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  assignedUser   User               @relation("TaskAssignedTo", fields: [assignedUserId], references: [id], onDelete: Restrict)
+
+  @@index([workflowId])
+  @@index([assignedUserId])
+  @@index([status])
+}
+
+model Session {
+  id               String   @id @default(uuid())
+  userId           String
+  refreshTokenHash String
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  ipAddress        String?
+  userAgent        String?
+  createdAt        DateTime @default(now())
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model PasswordResetToken {
+  id         String   @id @default(uuid())
+  userId     String
+  tokenHash  String
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model WorkflowTemplate {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  states      Json
+  transitions Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ContentType {
+  id          String     @id @default(uuid())
+  name        String     @unique
+  description String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  documents   Document[]
+}
+
+model Taxonomy {
+  id        String          @id @default(uuid())
+  name      String          @unique
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  values    TaxonomyValue[]
+}
+
+model TaxonomyValue {
+  id         String   @id @default(uuid())
+  taxonomyId String
+  label      String
+  createdAt  DateTime @default(now())
+  taxonomy   Taxonomy @relation(fields: [taxonomyId], references: [id], onDelete: Cascade)
+
+  @@unique([taxonomyId, label])
+}
+
+model AuditLog {
+  id         String    @id @default(uuid())
+  actorId    String?
+  eventType  String
+  objectType String
+  objectId   String?
+  details    Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime  @default(now())
+  actor      User?     @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([eventType])
+  @@index([createdAt])
+  @@index([actorId])
+}
+
+model SystemState {
+  id              Int          @id
+  status          SystemStatus @default(NOT_INSTALLED)
+  installedAt     DateTime?
+  installedBy     String?
+  appVersion      String?
+  installerLocked Boolean      @default(false)
+  authMode        AuthMode     @default(LOCAL_ONLY)
+  searchEnabled   Boolean      @default(false)
+  ssoEnabled      Boolean      @default(false)
+  emailEnabled    Boolean      @default(false)
+}
+
+model OrgSettings {
+  id             Int      @id
+  orgName        String
+  timezone       String
+  language       String
+  technicalEmail String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}

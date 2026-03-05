@@ -1,0 +1,14 @@
+node_modules
+**/node_modules
+**/dist
+**/.vite
+**/.turbo
+**/.cache
+coverage
+.env
+.env.*
+!.env.example
+backend/storage
+frontend/dist
+.DS_Store
+npm-debug.log*

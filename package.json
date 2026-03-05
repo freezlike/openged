@@ -1,0 +1,18 @@
+{
+  "name": "openged",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev:backend": "npm --workspace backend run start:dev",
+    "dev:frontend": "npm --workspace frontend run dev",
+    "build": "npm --workspace backend run build && npm --workspace frontend run build",
+    "lint": "npm --workspace backend run lint",
+    "smoke:api": "node scripts/smoke-api.mjs",
+    "smoke:web": "node scripts/smoke-web.mjs",
+    "test:smoke": "npm run smoke:api && npm run smoke:web"
+  }
+}

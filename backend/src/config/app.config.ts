@@ -1,0 +1,47 @@
+export const appConfig = () => ({
+  app: {
+    env: process.env.NODE_ENV ?? 'development',
+    port: Number(process.env.PORT ?? 3000),
+    frontendUrl: process.env.FRONTEND_URL ?? 'http://localhost:5173',
+    jwtSecret: process.env.JWT_SECRET ?? 'changeme-jwt-secret',
+    jwtTtl: process.env.JWT_TTL ?? '15m',
+    refreshTokenTtl: process.env.REFRESH_TOKEN_TTL ?? '7d',
+    authMode: process.env.AUTH_MODE ?? 'LOCAL_ONLY',
+    masterEncryptionKey: process.env.MASTER_ENCRYPTION_KEY ?? '',
+    forceHttps: process.env.FORCE_HTTPS === 'true',
+  },
+  db: {
+    url: process.env.DATABASE_URL ?? '',
+  },
+  storage: {
+    provider: process.env.STORAGE_PROVIDER ?? 'local',
+    localRoot: process.env.LOCAL_STORAGE_ROOT ?? './storage',
+    s3Region: process.env.S3_REGION ?? 'us-east-1',
+    s3Endpoint: process.env.S3_ENDPOINT ?? '',
+    s3Bucket: process.env.S3_BUCKET ?? 'openged',
+    s3AccessKey: process.env.S3_ACCESS_KEY ?? '',
+    s3SecretKey: process.env.S3_SECRET_KEY ?? '',
+    s3ForcePathStyle: process.env.S3_FORCE_PATH_STYLE !== 'false',
+  },
+  search: {
+    enabled: process.env.SEARCH_ENABLED === 'true',
+    url: process.env.SEARCH_URL ?? '',
+    indexName: process.env.SEARCH_INDEX_NAME ?? 'openged-documents',
+  },
+  email: {
+    enabled: process.env.EMAIL_ENABLED === 'true',
+    from: process.env.EMAIL_FROM ?? 'no-reply@example.local',
+    smtpHost: process.env.SMTP_HOST ?? '',
+    smtpPort: Number(process.env.SMTP_PORT ?? 587),
+    smtpUser: process.env.SMTP_USER ?? '',
+    smtpPass: process.env.SMTP_PASS ?? '',
+  },
+  sso: {
+    enabled: process.env.SSO_ENABLED === 'true',
+    provider: process.env.SSO_PROVIDER ?? 'oidc',
+    oidcIssuer: process.env.OIDC_ISSUER ?? '',
+    oidcClientId: process.env.OIDC_CLIENT_ID ?? '',
+    oidcClientSecret: process.env.OIDC_CLIENT_SECRET ?? '',
+    samlEntryPoint: process.env.SAML_ENTRY_POINT ?? '',
+  },
+});
