@@ -162,6 +162,11 @@ npm run smoke:api
 npm run smoke:web
 ```
 
+Run frontend unit tests:
+```bash
+npm run test:frontend
+```
+
 ## Local Development (without Docker)
 
 Prerequisites:
@@ -200,6 +205,7 @@ Before production:
 
 GitHub Actions workflow is included at `.github/workflows/ci.yml` and runs:
 - backend lint + workspace build
+- frontend unit tests (Vitest)
 - full `docker compose up -d --build`
 - API smoke tests (`scripts/smoke-api.mjs`)
 - web smoke tests (`scripts/smoke-web.mjs`)
