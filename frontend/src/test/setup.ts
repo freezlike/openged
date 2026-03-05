@@ -1,2 +1,9 @@
 import '@testing-library/jest-dom/vitest';
-import '../i18n';
+import { beforeAll } from 'vitest';
+
+import { i18n } from '../i18n';
+
+beforeAll(async () => {
+  localStorage.setItem('openged.locale', 'fr');
+  await i18n.changeLanguage('fr');
+});
