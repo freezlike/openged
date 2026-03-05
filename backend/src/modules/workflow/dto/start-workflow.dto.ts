@@ -6,6 +6,10 @@ export class StartWorkflowDto {
 
   @IsOptional()
   @IsString()
+  workflowDefId?: string;
+
+  @IsOptional()
+  @IsString()
   templateName?: string;
 
   @IsOptional()

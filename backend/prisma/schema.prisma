@@ -99,6 +99,14 @@ enum AuthMode {
   @@map("auth_mode")
 }
 
+enum Locale {
+  FR @map("fr")
+  EN @map("en")
+  AR @map("ar")
+
+  @@map("locale")
+}
+
 model User {
   id                String               @id @default(uuid())
   email             String               @unique
@@ -108,6 +116,7 @@ model User {
   status            UserStatus           @default(ACTIVE)
   mfaEnabled        Boolean              @default(false)
   mfaSecret         String?
+  preferredLocale   Locale?
   createdAt         DateTime             @default(now())
   updatedAt         DateTime             @updatedAt
   lastLogin         DateTime?
@@ -337,16 +346,19 @@ model AclEntry {
 model WorkflowInstance {
   id          String         @id @default(uuid())
   documentId  String
+  workflowDefId String?
   state       String
   startedBy   String
   startedAt   DateTime       @default(now())
   endedAt     DateTime?
   document    Document       @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  workflowDef WorkflowDef?   @relation(fields: [workflowDefId], references: [id], onDelete: SetNull)
   starter     User           @relation("WorkflowStartedBy", fields: [startedBy], references: [id], onDelete: Restrict)
   tasks       WorkflowTask[]
 
   @@index([documentId])
   @@index([state])
+  @@index([workflowDefId])
 }
 
 model WorkflowTask {
@@ -401,6 +413,16 @@ model WorkflowTemplate {
   transitions Json
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model WorkflowDef {
+  id             String             @id @default(uuid())
+  name           String             @unique
+  description    String?
+  definitionJson Json
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  instances      WorkflowInstance[]
 }
 
 model ContentType {
@@ -465,6 +487,7 @@ model OrgSettings {
   orgName        String
   timezone       String
   language       String
+  defaultLocale  Locale   @default(FR)
   technicalEmail String
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt

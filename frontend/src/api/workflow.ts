@@ -1,8 +1,9 @@
 import { api } from './client';
-import { MyTask, WorkflowTemplateSummary } from '../types/domain';
+import { MyTask, WorkflowDefinitionJson, WorkflowTemplateSummary } from '../types/domain';
 
 export async function startWorkflow(payload: {
   documentId: string;
+  workflowDefId?: string;
   assignedUserId?: string;
   dueDate?: string;
   templateName?: string;
@@ -28,6 +29,37 @@ export async function listAvailableWorkflows(params: {
   contentTypeId?: string;
 }) {
   const { data } = await api.get<WorkflowTemplateSummary[]>('/workflows/available', { params });
+  return data;
+}
+
+export async function listWorkflowDefinitions() {
+  const { data } = await api.get<WorkflowTemplateSummary[]>('/workflows/definitions');
+  return data;
+}
+
+export async function getWorkflowDefinition(definitionId: string) {
+  const { data } = await api.get<WorkflowTemplateSummary>(`/workflows/definitions/${definitionId}`);
+  return data;
+}
+
+export async function createWorkflowDefinition(payload: {
+  name: string;
+  description?: string;
+  definitionJson: WorkflowDefinitionJson;
+}) {
+  const { data } = await api.post<WorkflowTemplateSummary>('/workflows/definitions', payload);
+  return data;
+}
+
+export async function updateWorkflowDefinition(
+  definitionId: string,
+  payload: {
+    name?: string;
+    description?: string;
+    definitionJson?: WorkflowDefinitionJson;
+  },
+) {
+  const { data } = await api.put<WorkflowTemplateSummary>(`/workflows/definitions/${definitionId}`, payload);
   return data;
 }
 

@@ -44,10 +44,22 @@ backend API (NestJS)
 - Task assignment and completion (approve/reject)
 - Document workflow history
 - “My tasks” page with filters/presets
+- Graphical workflow designer (`/admin/workflows/designer`) with React Flow
+- Persisted workflow definitions in DB (`workflow_def`) and runtime transitions
 
 ### Audit
 - Audit logging service
 - Audit listing and export (`json` / `csv`)
+
+### Global Smart Data Entry
+- Reusable async autocomplete components:
+  - `SmartAutocomplete`
+  - `SmartMultiSelect`
+  - `SmartUserPicker`
+  - `SmartTaxonomyPicker`
+- Generic lookup API for global entity suggestions and inline creation:
+  - `GET /api/lookup/:entity?q=...`
+  - `POST /api/lookup/:entity`
 
 ### Modern SharePoint-like UI
 - App shell with collapsible site/library nav
@@ -73,6 +85,7 @@ backend API (NestJS)
 - `/recent`
 - `/favorites`
 - `/audit`
+- `/admin/workflows/designer`
 
 ## API Highlights
 
@@ -95,7 +108,13 @@ backend API (NestJS)
 - `GET /api/documents/:id/activity`
 - `GET /api/documents/:id/workflows/history`
 - `GET /api/workflows/available`
+- `GET /api/workflows/definitions`
+- `GET /api/workflows/definitions/:id`
+- `POST /api/workflows/definitions`
+- `PUT /api/workflows/definitions/:id`
 - `GET /api/tasks/my`
+- `GET /api/lookup/:entity`
+- `POST /api/lookup/:entity`
 
 ## Quick Start (Docker Compose)
 

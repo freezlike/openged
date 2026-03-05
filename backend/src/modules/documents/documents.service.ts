@@ -532,6 +532,12 @@ export class DocumentsService {
     const workflows = await this.prisma.workflowInstance.findMany({
       where: { documentId },
       include: {
+        workflowDef: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         starter: {
           select: { id: true, email: true },
         },
@@ -550,6 +556,7 @@ export class DocumentsService {
     return workflows.map((workflow) => ({
       id: workflow.id,
       state: workflow.state,
+      workflowDef: workflow.workflowDef,
       startedAt: workflow.startedAt,
       endedAt: workflow.endedAt,
       startedBy: workflow.starter,

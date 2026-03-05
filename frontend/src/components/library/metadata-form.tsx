@@ -1,13 +1,62 @@
 import { useEffect, useMemo, useState } from 'react';
 
+import { LookupItem } from '../../api/lookup';
+import { SmartAutocomplete, SmartTaxonomyPicker, SmartUserPicker } from '../smart';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { DocumentDetails } from '../../types/domain';
 
 interface MetadataFormProps {
   document: DocumentDetails;
   onSubmit: (fields: Array<{ fieldId: string; value: unknown }>) => Promise<void>;
+}
+
+type ValueMode = 'id' | 'label';
+
+type LookupConfig = {
+  entity: 'users' | 'groups' | 'documents' | 'taxonomy' | 'tags' | 'departments';
+  taxonomy?: string;
+  allowCreate?: boolean;
+  valueMode: ValueMode;
+};
+
+function resolveLookupConfig(field: DocumentDetails['availableFields'][number]): LookupConfig | null {
+  const normalizedName = field.name.toLowerCase();
+
+  if (field.dataType === 'USER_REFERENCE') {
+    return {
+      entity: 'users',
+      valueMode: 'id',
+      allowCreate: false,
+    };
+  }
+
+  if (field.dataType === 'TAXONOMY' || field.dataType === 'LIST') {
+    return {
+      entity: 'taxonomy',
+      taxonomy: field.name,
+      allowCreate: true,
+      valueMode: 'label',
+    };
+  }
+
+  if (normalizedName.includes('department')) {
+    return {
+      entity: 'departments',
+      allowCreate: true,
+      valueMode: 'label',
+    };
+  }
+
+  if (normalizedName.includes('tag')) {
+    return {
+      entity: 'tags',
+      allowCreate: true,
+      valueMode: 'label',
+    };
+  }
+
+  return null;
 }
 
 function toInputValue(value: unknown): string {
@@ -24,6 +73,7 @@ function toInputValue(value: unknown): string {
 
 export function MetadataForm({ document, onSubmit }: MetadataFormProps) {
   const [saving, setSaving] = useState(false);
+
   const buildInitialValues = () => {
     const initial: Record<string, string> = {};
 
@@ -35,10 +85,40 @@ export function MetadataForm({ document, onSubmit }: MetadataFormProps) {
     return initial;
   };
 
+  const buildInitialLookupSelections = () => {
+    const initial: Record<string, LookupItem | null> = {};
+
+    for (const field of document.availableFields) {
+      const config = resolveLookupConfig(field);
+      if (!config) {
+        continue;
+      }
+
+      const entry = document.metadata.find((item) => item.fieldId === field.id);
+      const value = toInputValue(entry?.value).trim();
+
+      if (!value) {
+        initial[field.id] = null;
+        continue;
+      }
+
+      initial[field.id] = {
+        id: value,
+        label: value,
+      };
+    }
+
+    return initial;
+  };
+
   const [values, setValues] = useState<Record<string, string>>(buildInitialValues);
+  const [lookupSelections, setLookupSelections] = useState<Record<string, LookupItem | null>>(
+    buildInitialLookupSelections,
+  );
 
   useEffect(() => {
     setValues(buildInitialValues());
+    setLookupSelections(buildInitialLookupSelections());
     // Reset form whenever selected document changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [document.id]);
@@ -86,38 +166,78 @@ export function MetadataForm({ document, onSubmit }: MetadataFormProps) {
   return (
     <div className="space-y-3">
       {document.availableFields.map((field) => {
-        const allowedValues =
-          field.validation &&
-          typeof field.validation === 'object' &&
-          'allowed' in field.validation &&
-          Array.isArray((field.validation as { allowed?: unknown[] }).allowed)
-            ? ((field.validation as { allowed?: unknown[] }).allowed as unknown[])
-            : null;
+        const lookupConfig = resolveLookupConfig(field);
 
         return (
           <div key={field.id} className="space-y-1">
             <label className="text-xs font-semibold uppercase tracking-wide text-[#64748b]">{field.name}</label>
-            {allowedValues ? (
-              <Select
-                value={values[field.id] ?? ''}
-                onValueChange={(value) =>
-                  setValues((previous) => ({
-                    ...previous,
-                    [field.id]: value,
-                  }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select value" />
-                </SelectTrigger>
-                <SelectContent>
-                  {allowedValues.map((value) => (
-                    <SelectItem key={String(value)} value={String(value)}>
-                      {String(value)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            {lookupConfig ? (
+              lookupConfig.entity === 'users' ? (
+                <SmartUserPicker
+                  value={lookupSelections[field.id] ?? null}
+                  onChange={(selected) => {
+                    setLookupSelections((previous) => ({
+                      ...previous,
+                      [field.id]: selected,
+                    }));
+                    setValues((previous) => ({
+                      ...previous,
+                      [field.id]:
+                        selected
+                          ? lookupConfig.valueMode === 'id'
+                            ? selected.id
+                            : selected.label
+                          : '',
+                    }));
+                  }}
+                  placeholder={field.required ? 'Select user' : 'Optional user'}
+                />
+              ) : lookupConfig.entity === 'taxonomy' ? (
+                <SmartTaxonomyPicker
+                  value={lookupSelections[field.id] ?? null}
+                  taxonomy={lookupConfig.taxonomy}
+                  allowCreate={lookupConfig.allowCreate}
+                  onChange={(selected) => {
+                    setLookupSelections((previous) => ({
+                      ...previous,
+                      [field.id]: selected,
+                    }));
+                    setValues((previous) => ({
+                      ...previous,
+                      [field.id]:
+                        selected
+                          ? lookupConfig.valueMode === 'id'
+                            ? selected.id
+                            : selected.label
+                          : '',
+                    }));
+                  }}
+                  placeholder="Search taxonomy values..."
+                />
+              ) : (
+                <SmartAutocomplete
+                  entity={lookupConfig.entity}
+                  allowCreate={lookupConfig.allowCreate}
+                  taxonomy={lookupConfig.taxonomy}
+                  value={lookupSelections[field.id] ?? null}
+                  onChange={(selected) => {
+                    setLookupSelections((previous) => ({
+                      ...previous,
+                      [field.id]: selected,
+                    }));
+                    setValues((previous) => ({
+                      ...previous,
+                      [field.id]:
+                        selected
+                          ? lookupConfig.valueMode === 'id'
+                            ? selected.id
+                            : selected.label
+                          : '',
+                    }));
+                  }}
+                  placeholder="Search..."
+                />
+              )
             ) : (
               <Input
                 value={values[field.id] ?? ''}

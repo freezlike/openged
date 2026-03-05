@@ -111,6 +111,7 @@ export interface AuditEvent {
 export interface WorkflowHistoryItem {
   id: string;
   state: string;
+  workflowDef?: { id: string; name: string } | null;
   startedAt: string;
   endedAt?: string | null;
   startedBy: { id: string; email: string };
@@ -125,11 +126,36 @@ export interface WorkflowHistoryItem {
   }>;
 }
 
+export interface WorkflowGraphNode {
+  id: string;
+  type: string;
+  label?: string;
+  position?: { x: number; y: number };
+  data?: Record<string, unknown>;
+}
+
+export interface WorkflowGraphEdge {
+  id?: string;
+  from?: string;
+  to?: string;
+  source?: string;
+  target?: string;
+  action?: string;
+  conditions?: Record<string, unknown> | null;
+}
+
+export interface WorkflowDefinitionJson {
+  nodes: WorkflowGraphNode[];
+  edges: WorkflowGraphEdge[];
+}
+
 export interface WorkflowTemplateSummary {
   id: string;
   name: string;
-  states: unknown;
-  transitions: unknown;
+  description?: string | null;
+  definitionJson?: WorkflowDefinitionJson;
+  states?: unknown;
+  transitions?: unknown;
 }
 
 export interface MyTask {

@@ -8,6 +8,7 @@ import { FavoritesPage } from '../pages/favorites-page';
 import { InstallPage } from '../pages/install-page';
 import { LoginPage } from '../pages/login-page';
 import { RecentPage } from '../pages/recent-page';
+import { WorkflowDesignerPage } from '../pages/admin/workflow-designer-page';
 import { TasksPage } from '../pages/tasks-page';
 import { LibraryPage } from '../pages/sites/library-page';
 import { SitesPage } from '../pages/sites/sites-page';
@@ -29,6 +30,7 @@ export function AppRouter() {
           <Route path="/recent" element={<RecentPage />} />
           <Route path="/favorites" element={<FavoritesPage />} />
           <Route path="/audit" element={<AuditPage />} />
+          <Route path="/admin/workflows/designer" element={<WorkflowDesignerPage />} />
         </Route>
       </Route>
 

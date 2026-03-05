@@ -566,6 +566,7 @@ export function LibraryPage() {
             documentId: payload.documentId,
             dueDate: payload.dueDate,
             assignedUserId: payload.assignedUserId,
+            workflowDefId: payload.workflowDefId,
             templateName: payload.templateName,
           });
         }}

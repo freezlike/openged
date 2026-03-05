@@ -6,6 +6,7 @@ import {
   Clock3,
   FolderKanban,
   FolderTree,
+  GitBranch,
   ListChecks,
   Menu,
   Search,
@@ -156,6 +157,25 @@ export function AppShell() {
               {!collapsed ? (
                 <p className="px-2 text-xs font-semibold uppercase tracking-wide text-[#94a3b8]">Admin</p>
               ) : null}
+              <NavLink
+                to="/admin/workflows/designer"
+                title="Workflow designer"
+                onClick={() => {
+                  if (closeOnNavigate) {
+                    setMobileNavOpen(false);
+                  }
+                }}
+                className={({ isActive }) =>
+                  cn(
+                    'flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-[#334155] transition hover:bg-[#f1f5f9]',
+                    isActive && 'bg-[#eff6ff] text-[#1d4ed8]',
+                    collapsed && 'justify-center px-0',
+                  )
+                }
+              >
+                <GitBranch className="h-4 w-4" />
+                {collapsed ? null : 'Workflows'}
+              </NavLink>
               <NavLink
                 to="/audit"
                 title="Audit"

@@ -57,7 +57,7 @@ async function upsertRole(role) {
   });
 }
 
-async function upsertLocalUser({ email, password, roleCodes }) {
+async function upsertLocalUser({ email, password, roleCodes, preferredLocale = 'FR' }) {
   const passwordHash = await bcrypt.hash(password, 10);
 
   const user = await prisma.user.upsert({
@@ -66,12 +66,14 @@ async function upsertLocalUser({ email, password, roleCodes }) {
       passwordHash,
       status: 'ACTIVE',
       authSource: 'LOCAL',
+      preferredLocale,
     },
     create: {
       email,
       passwordHash,
       status: 'ACTIVE',
       authSource: 'LOCAL',
+      preferredLocale,
     },
   });
 
@@ -308,28 +310,75 @@ async function main() {
     },
   });
 
+  const workflowDefinition = await prisma.workflowDef.upsert({
+    where: { name: 'Default Approval' },
+    update: {
+      description: 'Standard approval workflow',
+      definitionJson: {
+        nodes: [
+          { id: 'start', type: 'start', label: 'Start', position: { x: 80, y: 160 } },
+          { id: 'draft', type: 'state', label: 'Draft', position: { x: 260, y: 160 } },
+          { id: 'review', type: 'approval', label: 'Review', position: { x: 460, y: 160 } },
+          { id: 'published', type: 'state', label: 'Published', position: { x: 680, y: 160 } },
+          { id: 'end', type: 'end', label: 'End', position: { x: 860, y: 160 } },
+        ],
+        edges: [
+          { id: 'e1', from: 'start', to: 'draft', action: 'start' },
+          { id: 'e2', from: 'draft', to: 'review', action: 'submit' },
+          { id: 'e3', from: 'review', to: 'published', action: 'approve' },
+          { id: 'e4', from: 'review', to: 'draft', action: 'reject' },
+          { id: 'e5', from: 'published', to: 'end', action: 'complete' },
+        ],
+      },
+    },
+    create: {
+      name: 'Default Approval',
+      description: 'Standard approval workflow',
+      definitionJson: {
+        nodes: [
+          { id: 'start', type: 'start', label: 'Start', position: { x: 80, y: 160 } },
+          { id: 'draft', type: 'state', label: 'Draft', position: { x: 260, y: 160 } },
+          { id: 'review', type: 'approval', label: 'Review', position: { x: 460, y: 160 } },
+          { id: 'published', type: 'state', label: 'Published', position: { x: 680, y: 160 } },
+          { id: 'end', type: 'end', label: 'End', position: { x: 860, y: 160 } },
+        ],
+        edges: [
+          { id: 'e1', from: 'start', to: 'draft', action: 'start' },
+          { id: 'e2', from: 'draft', to: 'review', action: 'submit' },
+          { id: 'e3', from: 'review', to: 'published', action: 'approve' },
+          { id: 'e4', from: 'review', to: 'draft', action: 'reject' },
+          { id: 'e5', from: 'published', to: 'end', action: 'complete' },
+        ],
+      },
+    },
+  });
+
   const adminUser = await upsertLocalUser({
     email: 'admin@example.com',
     password: 'ChangeMe123!',
     roleCodes: ['SUPER_ADMIN', 'GLOBAL_ADMIN', 'SITE_ADMIN', 'EDITOR', 'VALIDATOR'],
+    preferredLocale: 'FR',
   });
 
   const editorUser = await upsertLocalUser({
     email: 'editor@example.com',
     password: 'ChangeMe123!',
     roleCodes: ['EDITOR', 'CONTRIBUTOR', 'READER'],
+    preferredLocale: 'EN',
   });
 
   const validatorUser = await upsertLocalUser({
     email: 'validator@example.com',
     password: 'ChangeMe123!',
     roleCodes: ['VALIDATOR', 'READER'],
+    preferredLocale: 'AR',
   });
 
   const readerUser = await upsertLocalUser({
     email: 'reader@example.com',
     password: 'ChangeMe123!',
     roleCodes: ['READER'],
+    preferredLocale: 'FR',
   });
 
   const existingSystemState = await prisma.systemState.findUnique({ where: { id: 1 } });
@@ -365,6 +414,7 @@ async function main() {
       orgName: 'OpenGED Organization',
       timezone: 'UTC',
       language: 'en',
+      defaultLocale: 'FR',
       technicalEmail: 'it@example.com',
     },
   });
@@ -588,6 +638,7 @@ async function main() {
       const workflow = await prisma.workflowInstance.create({
         data: {
           documentId: pendingDoc.id,
+          workflowDefId: workflowDefinition.id,
           state: 'Submitted',
           startedBy: editorUser.id,
         },

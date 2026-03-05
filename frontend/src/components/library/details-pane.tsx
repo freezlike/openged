@@ -134,6 +134,9 @@ export function DetailsPane({
                       {workflow.endedAt ? 'Closed' : 'Active'}
                     </Badge>
                   </div>
+                  {workflow.workflowDef?.name ? (
+                    <p className="mt-1 text-xs text-[#475569]">Workflow: {workflow.workflowDef.name}</p>
+                  ) : null}
                   <p className="mt-1 text-xs text-[#64748b]">Started {formatDate(workflow.startedAt)}</p>
                   <div className="mt-2 space-y-2">
                     {workflow.tasks.map((task) => (
